@@ -1,0 +1,96 @@
+(async () => {
+    // 1. IMPROVED STATE FINDER
+    const getReactState = () => {
+        const root = document.querySelector('#app > div > div');
+        if (!root) return null;
+        const fiberKey = Object.keys(root).find(k => k.startsWith('__reactFiber') || k.startsWith('__reactInternalInstance'));
+        let current = root[fiberKey];
+        while (current) {
+            if (current.stateNode?.state) return current.stateNode;
+            current = current.return;
+        }
+        return null;
+    };
+
+    // 2. GUI ELEMENTS
+    const gui = document.createElement('div');
+    gui.id = "JOD_Cheat_Menu";
+    Object.assign(gui.style, {
+        position: "fixed", top: "100px", left: "100px", width: "300px",
+        background: "#1a1a1a", border: "2px solid #9a49aa", borderRadius: "10px",
+        zIndex: "99999", color: "white", padding: "0", fontFamily: "sans-serif",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.5)", overflow: "hidden"
+    });
+
+    // DRAG HANDLE (Movable Logic)
+    const header = document.createElement('div');
+    header.innerText = "JOD CHEATS (Press R-Shift to Hide)";
+    Object.assign(header.style, {
+        background: "#9a49aa", padding: "10px", cursor: "move",
+        fontWeight: "bold", fontSize: "12px", textAlign: "center"
+    });
+    gui.appendChild(header);
+
+    const content = document.createElement('div');
+    content.style.padding = "10px";
+    gui.appendChild(content);
+
+    // 3. DRAGGING LOGIC
+    let isDragging = false, offset = [0, 0];
+    header.onmousedown = (e) => {
+        isDragging = true;
+        offset = [gui.offsetLeft - e.clientX, gui.offsetTop - e.clientY];
+    };
+    document.onmousemove = (e) => {
+        if (isDragging) {
+            gui.style.left = (e.clientX + offset[0]) + 'px';
+            gui.style.top = (e.clientY + offset[1]) + 'px';
+        }
+    };
+    document.onmouseup = () => isDragging = false;
+
+    // 4. HIDE/SHOW LOGIC (Hidable)
+    document.addEventListener('keydown', (e) => {
+        if (e.code === "ShiftRight") {
+            gui.style.display = gui.style.display === "none" ? "block" : "none";
+        }
+    });
+
+    // 5. THE CHEATS
+    const addCheat = (name, fn) => {
+        const btn = document.createElement('button');
+        btn.innerText = name;
+        Object.assign(btn.style, {
+            width: "100%", padding: "8px", margin: "4px 0", cursor: "pointer",
+            background: "#333", color: "#0bc2cf", border: "1px solid #444", borderRadius: "5px"
+        });
+        btn.onclick = fn;
+        content.appendChild(btn);
+    };
+
+    addCheat("🚀 Auto-Answer", () => {
+        setInterval(() => {
+            const s = getReactState();
+            if (s?.state?.question) {
+                const ans = s.state.question.correctAnswers;
+                document.querySelectorAll('[class*="answerContainer"]').forEach(b => {
+                    if (ans.includes(b.innerText)) b.click();
+                });
+            }
+        }, 500);
+        alert("Auto-Answer Active!");
+    });
+
+    addCheat("💰 Gold Quest: Set 1M", () => {
+        const s = getReactState();
+        if (s) s.setState({ gold: 1000000 });
+    });
+
+    addCheat("💎 Crypto: Password Hack", () => {
+        const s = getReactState();
+        if (s) s.setState({ crypto: 50000, password: s.state.correctPassword });
+    });
+
+    document.body.appendChild(gui);
+    console.log("Cheat Menu Loaded. Drag the purple bar to move. Press Right-Shift to hide!");
+})();
