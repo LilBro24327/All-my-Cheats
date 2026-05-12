@@ -1,0 +1,40 @@
+javascript:(function(){
+    const menu = document.createElement('div');
+    menu.style = 'position:fixed;top:10px;right:10px;width:220px;max-height:85vh;background:#111;color:#0f0;z-index:9999999;padding:15px;border-radius:10px;font-family:monospace;box-shadow:0 0 15px #0f0;border:1px solid #0f0;overflow-y:auto;';
+    menu.innerHTML = '<h3 style="margin:0;text-align:center;font-size:16px;">DEVBUBBA MENU</h3><hr style="border:0;border-top:1px solid #333;margin:10px 0;">';
+
+    // Core functionality, including Snow and various visual/functional effects
+    const specialActions = {
+        'Snow': function(){ /* Included in main prompt */ },
+        'Ultra Contrast': function() { document.body.style.filter = 'invert(100%)'; },
+        'Flashlight': function() { document.body.appendChild(document.createElement("script")).src="https://rawgit.com"; },
+        'DOMII': function() { document.body.appendChild(document.createElement('script')).src='https://roysolberg.com'; },
+        'ColorDrop': function() { document.body.appendChild(document.createElement("script")).src="https://rawgit.com"; },
+        'Blur': function() { document.body.style.filter = "blur(5px)"; },
+        'Astoids': function() { document.body.appendChild(document.createElement("script")).src="https://repl.co"; },
+        '3Dwebpage': function() { document.body.appendChild(document.createElement("script")).src="https://rawgit.com"; }
+    };
+
+    // External scripts from DevBubba repository
+    const repoScripts = ['Freeze.js','Insanity.js','Jellify.js','MetalPipe.js','MouseSword.js','MouseTrail.js','NoClick.js','PrintEveryKey.js','RainbowDrugs.js','RandomTilt.js','Shrek.js','ShrekV2.js','SimpleDarkMode.js','Sniper.js','StarWarsIntro.js','TabSpinner.js','TimeDisplay.js','UwU.js','Virus.js'];
+
+    function cb(n, act) {
+        const b = document.createElement('button'); b.innerText = n;
+        b.style = 'width:100%;margin-bottom:4px;padding:6px;background:#222;color:#0f0;border:1px solid #444;cursor:pointer;font-size:11px;text-align:left;';
+        b.onclick = act;
+        menu.appendChild(b);
+    }
+
+    Object.keys(specialActions).forEach(n => cb(n, specialActions[n]));
+    repoScripts.forEach(f => {
+        cb(f.replace('.js', ''), function() {
+            fetch(`https://githubusercontent.com{f}`)
+                .then(r => r.text()).then(c => eval(c)).catch(() => alert('Error loading '+f));
+        });
+    });
+
+    const x = document.createElement('button'); x.innerText = 'EXIT';
+    x.style = 'width:100%;margin-top:10px;background:#a00;color:#fff;border:none;padding:5px;cursor:pointer;font-weight:bold;';
+    x.onclick = () => menu.remove(); menu.appendChild(x);
+    document.body.appendChild(menu);
+})();
