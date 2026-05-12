@@ -1,1 +1,1 @@
-# All-my-Cheats
+# All-my-Cheats, These cheats are not to be used in illegal ways; these are meant for kids to have fun while still within some boundaries. What I mean by that is that I have linked all these cheats to a LINKED Goguardian page so you can see when they are active. Now I won't leak the goguardian here, or we all know what's gonna happen.
