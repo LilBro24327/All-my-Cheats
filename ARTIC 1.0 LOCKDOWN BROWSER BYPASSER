@@ -1,0 +1,22 @@
+alert("This is in beta testing");
+alert("This is made by August, Dillon, and Artic 1.0 AI");
+alert("Welcome to Artic 1.0 AI Lockdown browser");
+
+// 1. Ask for the code
+const password = prompt("Enter the access code:");
+
+// 2. Check if the code is correct
+if (password === "19x23vb") {
+    const userConfirmed = confirm("Are you sure you want to do this?");
+    
+    if (userConfirmed) {
+        console.log("User clicked OK. Proceeding...");
+        // This will redirect the user to the website
+        window.location.href = "https://classlinklogin.speedinsure.hk/mastery?auth=a54t4f0";
+    } else {
+        console.log("User backed out.");
+    }
+} else {
+    // 3. What happens if they get it wrong
+    alert("Incorrect code. Access denied.");
+}
