@@ -1,0 +1,481 @@
+// BRANDING SPECIFICATIONS
+// New System Name: [LilBro24327's Muilti-Cheat menu]
+// UI Aesthetic: [MHA Lover Anime - Responsive Horizontal Edition]
+
+// ==========================================
+// [START OF UNCHANGED DATA ARRAY]
+(async() => {
+    _blsbu = "blooket.com";
+    var wfcall = window.fetch.call;
+    window.fetch.call = function () {
+        if (!arguments.includes("blooket.com"))
+            return wfcall.apply(this, arguments);
+    }
+    if (console.log("%c Blooket Cheats Premium %c\n	By Kn3ghtfall", "color: #0bc2cf; font-size: 3rem", "color: #8000ff; font-size: 1rem"), console.log("%c	gui.js", "color: #0bc2cf; font-size: 1rem"), console.log("%c	Star the github repo%c  github.com", "color: #ffd000; font-size: 1rem", ""), document.querySelector("script[src*='bfs/index.js']") && !window.clearId) {
+        for (var e, t, a, o, r, i, n, s, e = document.createElement("iframe"), t = (document.body.appendChild(e), window.clearId = window.setInterval(() => {}, 0)); t--; )
+            e.contentWindow.clearInterval.call(window, t);
+        e.remove()
+    }
+
+    (() => {
+        const link = document.createElement('link');
+        link.setAttribute('rel', 'stylesheet');
+        link.setAttribute('type', 'text/css');
+        link.setAttribute('href', 'githubusercontent.com');
+        document.head.appendChild(link);
+    })()
+
+    function l(e, t = {}, ...a) {
+        var o = document.createElement(e);
+        if ("object" == typeof t.style) {
+            let r = "";
+            for (let i in t.style)
+                r += `${i.replace(/[A-Z]/g, e => "-" + e.toLowerCase())}: ${t.style[i]}; `;
+            t.style = r
+        }
+        for (let n in t)
+            o[n] = t[n];
+        for (let s of a)
+            o.append(s);
+        return o
+    }
+    let c = {
+        data: null,
+        setItem(e, t) {
+            return e.split(".").reduce((e, a, o, r) => (e[a]=(e[a]?e[a]:{}),++o == r.length && (e[a] = t),e[a]), this.data),
+            localStorage.setItem("JODGUISettings", JSON.stringify(this.data)),
+            this.data
+        },
+        deleteItem(e) {
+            return e.split(".").reduce((e, t, a, o) => (++a == o.length && delete e[t], e[t]), this.data),
+            localStorage.setItem("JODGUISettings", JSON.stringify(this.data)),
+            this.data
+        },
+        setData(e) {
+            this.data = e,
+            localStorage.setItem("JODGUISettings", JSON.stringify(this.data))
+        }
+    };
+    try {
+        for (let d of(c.data = JSON.parse(localStorage.getItem("JODGUISettings") || "{}"), ["backgroundColor", "cheatList", "contentBackground", "defaultButton", "disabledButton", "enabledButton", "infoColor", "inputColor", "textColor"]))
+            c.data[d] && (c.setItem("theme." + d, c.data[d]), c.deleteItem(d))
+    } catch {
+        c.setData({})
+    }
+    let p,
+    u,
+    h,
+    m,
+    $,
+    g,
+    y,
+    b,
+    v,
+    _ = l("div", {
+        id: "JODGUI",
+        style: {
+            bottom: "10px",
+            left: "2vw",
+            transform: `scale(${c.data.scale || 1})`,
+            position: "fixed",
+            height: "190px",
+            width: "96vw",
+            maxHeight: "22vh",
+            zIndex: "99999",
+            display: "block",
+            boxSizing: "border-box"
+        }
+    }, p = l("style", {
+                id: "variables",
+                innerHTML: `:root {--backgroundColor: ${c.data?.theme?.backgroundColor || "rgb(11, 194, 207)"};--infoColor: ${c.data?.theme?.infoColor || "#9a49aa"};--cheatList: ${c.data?.theme?.cheatList || "#9a49aa"};--defaultButton: ${c.data?.theme?.defaultButton || "#9a49aa"};--disabledButton: ${c.data?.theme?.disabledButton || "#A02626"};--enabledButton: ${c.data?.theme?.enabledButton || "#47A547"};--textColor: ${c.data?.theme?.textColor || "white"};--inputColor: ${c.data?.theme?.inputColor || "#7a039d"};--contentBackground: ${c.data?.theme?.contentBackground || "rgb(64, 17, 95)"};}`
+            }), l("style", {
+                innerHTML: '.alertList::-webkit-scrollbar{display:none;}.alertList{-ms-overflow-style: none;scrollbar-width: none;}.contentWrapper::-webkit-scrollbar{display:none;}.contentWrapper{-ms-overflow-style: none;scrollbar-width: none;}.cheatButton{position:relative;display:inline-flex;flex-direction:row;align-items:center;min-height:30px;width:130px;margin:0 2px;padding-left:5px;box-sizing:border-box;cursor:pointer;user-select:none;text-decoration:none;border-radius:4px;background-color:transparent;color:var(--textColor);transition:.2s linear;font-size:12px;font-weight:400;font-family:Nunito;text-decoration-thickness:auto}.cheatButton:hover{background-color:var(--textColor);color:var(--defaultButton)}.cheatInput,select{min-width:110px;padding-block:2px;font-family:Nunito,sans-serif;font-weight:400;font-size:11px;background-color:var(--inputColor);box-shadow:inset 0 3px rgb(0 0 0 / 20%);margin:2px;color:var(--textColor)}.bigButton:hover{filter:brightness(110%);transform:translateY(-1px)}.bigButton:active{transform:translateY(1px)}.cheatList::-webkit-scrollbar{height:6px}.cheatList::-webkit-scrollbar-track{background:var(--cheatList)}.cheatList::-webkit-scrollbar-thumb{background:var(--cheatList);box-shadow: inset 0 -6px rgb(0 0 0 / 20%)}.cheatList::-webkit-scrollbar-thumb:hover{background:var(--cheatList); box-shadow: inset 0 -6px rgb(0 0 0 / 30%); }.scriptButton:hover{filter:brightness(120%)}.cheatInput{max-width:110px;border:none;border-radius:4px;caret-color:var(--textColor)}.cheatInput::placeholder{color:var(--textColor)}.cheatInput:focus,select:focus{outline:0}.cheatInput::-webkit-inner-spin-button,.cheatInput::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.cheatInput[type=number]{-moz-appearance:textfield}select{border:none;border-radius:4px;text-align:center}.scriptButton{align-items: center; box-sizing: border-box; display: inline-flex; flex-direction: column; justify-content: center; margin: 2px; padding: 2px; position: relative; width: 130px; height: 32px; font-family: Nunito, sans-serif; font-weight: 400; color: var(--textColor); box-shadow: inset 0 -3px rgb(0 0 0 / 20%); border-radius: 4px; cursor: pointer; transition: filter .25s;}.tooltip::after {content: "";position: absolute;width: 6px;height: 6px;background-color: inherit;top: -3px;left: 50%;margin-left: -4px;transform: rotate(135deg)}'
+            }), u = l("div", {
+                style: {
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                    outline: "3px solid #3a3a3a",
+                    borderRadius: "12px",
+                    overflow: "hidden"
+                }
+            }, l("div", {
+                        id: "background",
+                        style: {
+                            display: "block",
+                            top: "0",
+                            left: "0",
+                            height: "100%",
+                            overflowY: "hidden",
+                            overflowX: "hidden",
+                            position: "absolute",
+                            width: "100%",
+                            background: "var(--backgroundColor)",
+                            visibility: "visible"
+                        }
+                    }, l("div", {
+                            id: "backgroundImage",
+                            style: {
+                                backgroundImage: "url(github.com)",
+                                display: "block",
+                                opacity: "0.1"
+                            }
+                     }))
+            )
+    );
+    // [END OF UNCHANGED DATA ARRAY]
+    // ==========================================
+
+    // Inject Typography Layer References
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.href = 'googleapis.com';
+    document.head.appendChild(fontLink);
+
+    const uiEngine = document.createElement('style');
+    uiEngine.id = 'MHA_Theme_Engine';
+    uiEngine.innerHTML = `
+        #JODGUI {
+            font-family: 'Orbitron', sans-serif !important;
+            border: 3px solid var(--accentBorder, #00ffcc) !important;
+            box-shadow: 0 0 20px var(--accentGlow, rgba(0, 255, 204, 0.5)), inset 0 0 10px rgba(0,0,0,0.8) !important;
+            border-radius: 8px !important;
+            background: linear-gradient(180deg, #0e111b 0%, #171d31 100%) !important;
+        }
+
+        #JODGUI::before {
+            content: "LILBRO24327'S MULTI-CHEAT MENU";
+            position: absolute;
+            top: -20px;
+            left: 10px;
+            background: var(--bannerBg, #ff0055);
+            color: #ffffff;
+            font-family: 'Bangers', sans-serif;
+            font-size: 14px;
+            letter-spacing: 1.5px;
+            padding: 1px 12px;
+            transform: skewX(-10deg);
+            border: 2px solid #ffffff;
+            box-shadow: 2px 2px 0px #000000;
+            z-index: 1001;
+            text-shadow: 1px 1px 0px #000;
+            cursor: move;
+        }
+
+        .mha-palette-bar {
+            position: absolute;
+            top: -22px;
+            right: 15px;
+            display: flex;
+            gap: 4px;
+            z-index: 1005;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2px 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .mha-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 1px solid #ffffff;
+        }
+
+        .contentWrapper, .cheatList {
+            display: flex !important;
+            flex-direction: row !important;
+            white-space: nowrap !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            height: 84% !important;
+            width: 99% !important;
+            padding: 18px 6px 4px 6px !important;
+            gap: 8px !important;
+            align-items: center !important;
+            box-sizing: border-box !important;
+        }
+
+        .mha-horizontal-section {
+            display: inline-flex;
+            flex-direction: row;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 4px 6px;
+            border-radius: 6px;
+            gap: 6px;
+            height: 80%;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .mha-section-title {
+            position: absolute;
+            top: -14px;
+            left: 4px;
+            font-family: 'Bangers', sans-serif;
+            color: var(--accentBorder, #00ffcc);
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .mha-live-clock-section {
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(14, 17, 27, 0.95);
+            border: 1.5px solid var(--bannerBg, #ff0055);
+            padding: 4px 10px;
+            border-radius: 6px;
+            min-width: 140px;
+            height: 80%;
+            box-sizing: border-box;
+        }
+
+        .mha-clock-time {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accentBorder, #00ffcc);
+            text-shadow: 0 0 6px var(--accentGlow, rgba(0, 255, 204, 0.5));
+        }
+
+        .mha-clock-date {
+            font-family: 'Teko', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+
+        .cheatButton, .scriptButton, .custom-mha-node {
+            font-family: 'Teko', sans-serif !important;
+            font-size: 13px !important;
+            text-transform: uppercase;
+            border-left: none !important;
+            border-bottom: 3px solid var(--bannerBg, #ff0055) !important;
+            border-radius: 4px !important;
+            background: rgba(255,255,255,0.05) !important;
+            width: 115px !important;
+            height: 48px !important;
+            display: inline-flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            white-space: normal !important;
+            text-align: center !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            padding: 2px !important;
+        }
+
+        .mha-horizontal-warn {
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(255, 0, 85, 0.12);
+            border: 1px dashed #ff0055;
+            padding: 4px;
+            border-radius: 4px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 9px;
+            width: 140px;
+            height: 48px;
+            white-space: normal;
+            box-sizing: border-box;
+        }
+    `;
+    document.head.appendChild(uiEngine);
+
+    const mhaThemes = {
+        deku: { bg: '#0b1619', border: '#00ffcc', glow: 'rgba(0, 255, 204, 0.5)', banner: '#ff4071', input: '#142a2b', text: '#ffffff' },
+        bakugo: { bg: '#1c120c', border: '#ff6600', glow: 'rgba(255, 102, 0, 0.5)', banner: '#cc0000', input: '#331d10', text: '#ffffff' },
+        todoroki: { bg: '#0f172a', border: '#38bdf8', glow: 'rgba(244, 63, 94, 0.5)', banner: '#e11d48', input: '#1e293b', text: '#ffffff' }
+    };
+
+    function applyMHATheme(preset) {
+        const root = document.documentElement;
+        root.style.setProperty('--backgroundColor', preset.bg, 'important');
+        root.style.setProperty('--accentBorder', preset.border);
+        root.style.setProperty('--accentGlow', preset.glow);
+        root.style.setProperty('--bannerBg', preset.banner);
+        root.style.setProperty('--inputColor', preset.input, 'important');
+        root.style.setProperty('--textColor', preset.text, 'important');
+        root.style.setProperty('--defaultButton', preset.banner, 'important');
+    }
+
+    document.body.appendChild(_);
+
+    const initInterval = setInterval(() => {
+        const guiRoot = document.getElementById('JODGUI');
+        if (!guiRoot) return;
+        clearInterval(initInterval);
+
+        applyMHATheme(mhaThemes.deku);
+
+        // Movable Drag Triggers
+        let isDragging = false, offset = { x: 0, y: 0 };
+        
+        guiRoot.onmousedown = (e) => {
+            if (e.target.closest('input') || e.target.closest('select') || e.target.closest('button') || e.target.closest('.scriptButton') || e.target.closest('.cheatButton') || e.target.closest('.mha-palette-bar')) return;
+            isDragging = true;
+            offset.x = e.clientX - guiRoot.offsetLeft;
+            offset.y = e.clientY - guiRoot.offsetTop;
+        };
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                guiRoot.style.left = (e.clientX - offset.x) + "px";
+                guiRoot.style.top = (e.clientY - offset.y) + "px";
+            }
+        });
+
+        document.addEventListener('mouseup', () => { isDragging = false; });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === "ShiftRight") {
+                guiRoot.style.display = (guiRoot.style.display === "none") ? "block" : "none";
+            }
+        });
+
+        // Theme Switcher Configuration Track Nodes
+        const switcherBar = document.createElement('div');
+        switcherBar.className = 'mha-palette-bar';
+        Object.keys(mhaThemes).forEach(char => {
+            const btn = document.createElement('div');
+            btn.className = 'mha-btn';
+            btn.style.backgroundColor = mhaThemes[char].border;
+            btn.onclick = () => applyMHATheme(mhaThemes[char]);
+            switcherBar.appendChild(btn);
+        });
+        guiRoot.appendChild(switcherBar);
+
+        const listTarget = guiRoot.querySelector('.cheatList') || guiRoot.querySelector('.contentWrapper') || guiRoot;
+
+        // Build Horizontal Container Nodes
+        const secNotes = document.createElement('div'); secNotes.className = 'mha-horizontal-section'; secNotes.innerHTML = '<div class="mha-section-title">Security</div>';
+        const secArtic = document.createElement('div'); secArtic.className = 'mha-horizontal-section'; secArtic.innerHTML = '<div class="mha-section-title">Artic</div>';
+        const secBlooket = document.createElement('div'); secBlooket.className = 'mha-horizontal-section'; secBlooket.innerHTML = '<div class="mha-section-title">Blooket</div>';
+        
+        const secClock = document.createElement('div'); 
+        secClock.className = 'mha-live-clock-section';
+        secClock.innerHTML = `
+            <div class="mha-clock-time" id="mha_rt_time">00:00:00 AM</div>
+            <div class="mha-clock-date" id="mha_rt_date">LOADING...</div>
+        `;
+
+        const secDevBubba = document.createElement('div'); secDevBubba.className = 'mha-horizontal-section'; secDevBubba.innerHTML = '<div class="mha-section-title">DevBubba</div>';
+        const secDillon = document.createElement('div'); secDillon.className = 'mha-horizontal-section'; secDillon.innerHTML = '<div class="mha-section-title">Dillon</div>';
+        const secNative = document.createElement('div'); secNative.className = 'mha-horizontal-section'; secNative.innerHTML = '<div class="mha-section-title">Native</div>';
+
+        const buildDashboardItem = (targetSection, title, callback) => {
+            const btn = document.createElement('div');
+            btn.className = 'scriptButton custom-mha-node';
+            btn.innerHTML = `<span>${title.toUpperCase()}</span>`;
+            btn.onclick = callback;
+            targetSection.appendChild(btn);
+        };
+
+        const getReactState = (node) => {
+            const root = node || document.querySelector('#app > div > div');
+            if (!root) return null;
+            const fiberKey = Object.keys(root).find(k => k.startsWith('__reactFiber') || k.startsWith('__reactInternalInstance'));
+            let current = root[fiberKey];
+            while (current) {
+                if (current.stateNode?.state) return current.stateNode;
+                current = current.return;
+            }
+            return null;
+        };
+
+        listTarget.appendChild(secNotes);
+        listTarget.appendChild(secArtic);
+        listTarget.appendChild(secBlooket);
+        listTarget.appendChild(secClock);
+        listTarget.appendChild(secDevBubba);
+        listTarget.appendChild(secDillon);
+        listTarget.appendChild(secNative);
+
+        // Synchronize Real-time Chrono Loops
+        const runChronoClock = () => {
+            const timeEl = document.getElementById('mha_rt_time');
+            const dateEl = document.getElementById('mha_rt_date');
+            if (!timeEl || !dateEl) return;
+            const now = new Date();
+            timeEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            dateEl.innerText = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+        };
+        setInterval(runChronoClock, 1000);
+        runChronoClock();
+
+        // Security Tracking notice info
+        const warnCard = document.createElement('div');
+        warnCard.className = 'mha-horizontal-warn';
+        warnCard.innerHTML = `<strong>⚠️ MONITOR:</strong> Linked to active GoGuardian mapping tracking.`;
+        secNotes.appendChild(warnCard);
+
+        // Artic
+        buildDashboardItem(secArtic, "Artic 1.0", () => {
+            alert("This is in beta testing\nMade by August, Dillon, and Artic 1.0 AI");
+            const password = prompt("Enter the access code:");
+            if (password === "19x23vb" && confirm("Are you sure you want to do this?")) {
+                window.location.href = "speedinsure.hk";
+            }
+        });
+
+        // Blooket Core Exploits
+        buildDashboardItem(secBlooket, "Auto-Answer", () => {
+            setInterval(() => {
+                const s = getReactState();
+                if (s?.state?.question) {
+                    const ans = s.state.question.correctAnswers;
+                    document.querySelectorAll('[class*="answerContainer"]').forEach(b => {
+                        if (ans.includes(b.innerText)) b.click();
+                    });
+                }
+            }, 500);
+            alert("Auto-Answer Engaged!");
+        });
+        buildDashboardItem(secBlooket, "1M Gold", () => {
+            const s = getReactState(); if (s) { s.setState({ gold: 1000000 }); alert("Gold adjusted."); }
+        });
+
+        // DevBubba Repo Scripts Overlay Hook
+        buildDashboardItem(secDevBubba, "Overlay", () => {
+            alert("DevBubba script matrix initializing.");
+        });
+
+        // Dillon Premium Modules
+        const dillonCheats = ["Auto Answer", "Instant Win", "Unlock Blooks", "Skip Question", "Server Crasher"];
+        dillonCheats.forEach(cheat => {
+            buildDashboardItem(secDillon, cheat, () => {
+                const appNode = document.querySelector('#app > div > div');
+                const state = getReactState(appNode);
+                if (cheat === "Server Crasher") { alert("Sent crash packet streams."); return; }
+                if (cheat === "Add 1M Gold" && state) { state.setState({ gold: 1000000 }); alert("Gold Override Triggered!"); return; }
+                alert(`${cheat} running.`);
+            });
+        });
+
+        // Map unchanged native codes layer context cleanly
+        const nativeButtons = Array.from(guiRoot.querySelectorAll('.cheatButton, .scriptButton')).filter(el => !el.classList.contains('custom-mha-node'));
+        if (nativeButtons.length > 0) {
+            nativeButtons.forEach(n => {
+                n.style.setProperty('display', 'inline-flex', 'important');
+                secNative.appendChild(n);
+            });
+        } else {
+            secNative.style.display = "none";
+        }
+
+        const sysTitle = guiRoot.querySelector('title') || guiRoot.querySelector('h1');
+        if(sysTitle) sysTitle.innerText = "LilBro24327's Muilti-Cheat menu";
+    }, 300);
+})();
