@@ -124,7 +124,53 @@
             )
     );
     // [END OF UNCHANGED DATA ARRAY]
-    // ==========================================
+        // 1. Close the UI container first so the variable 'u' is actually defined
+    document.body.appendChild(_);
+
+    // 2. Define the button creation function to ensure consistent MHA styling
+    const createBtn = (text, color, action) => {
+        const btn = l("div", {
+            className: "scriptButton",
+            style: {
+                backgroundColor: color,
+                border: "2px solid var(--accentBorder, #00ffcc)",
+                boxShadow: "0 0 8px var(--accentBorder, #00ffcc)",
+                color: "white",
+                display: "inline-flex", // Ensures they sit horizontally
+                margin: "5px"
+            },
+            innerHTML: text,
+            onclick: action
+        });
+        u.appendChild(btn); // Now 'u' is guaranteed to exist
+    };
+
+    // 3. Add your Google Opener
+    createBtn("🚀 DRIVE OPENER", "var(--infoColor)", function() {
+        alert("Beta - Made by Dillon");
+        const password = prompt("Enter code:");
+        if (password === "googledrive") {
+            window.location.href = "https://google.com";
+        } else {
+            alert("Wrong code.");
+        }
+    });
+
+    // 4. Add the Utility Buttons
+    createBtn("🕶️ STEALTH", "#333", () => {
+        _.style.opacity = (_.style.opacity === "0.1") ? "1" : "0.1";
+    });
+
+    createBtn("🔄 RELOAD", "#d9534f", () => {
+        if(confirm("Refresh?")) location.reload();
+    });
+
+    createBtn("📺 SCREEN", "#f0ad4e", () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    });
+
+// ==========================================
     // ==========================================
     // INTEGRATED GOOGLE OPENER BUTTON
     // ==========================================
