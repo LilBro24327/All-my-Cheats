@@ -157,7 +157,79 @@
     });
 
     // Automatically adds the button to your horizontal menu bar (u)
-    u.appendChild(driveButton);
+    u.appendChild(driveButton);     // --- NON-CHEAT UTILITY BUTTONS ---
+
+    // 1. DISCORD / COMMUNITY (Deku Green)
+    const discordBtn = l("div", {
+        className: "scriptButton",
+        style: {
+            backgroundColor: "rgba(88, 101, 242, 0.2)",
+            border: "2px solid #5865F2",
+            boxShadow: "0 0 10px #5865F2",
+            color: "#fff"
+        },
+        innerHTML: "💬 Join Discord",
+        onclick: function() {
+            window.open("https://discord.com", "_blank");
+        }
+    });
+
+    // 2. THEME TOGGLE (Bakugo Orange)
+    const themeBtn = l("div", {
+        className: "scriptButton",
+        style: {
+            backgroundColor: "rgba(255, 69, 0, 0.2)",
+            border: "2px solid #ff4500",
+            boxShadow: "0 0 10px #ff4500"
+        },
+        innerHTML: "🎨 Toggle Theme",
+        onclick: function() {
+            const current = document.documentElement.style.getPropertyValue('--backgroundColor');
+            if (current === 'rgb(26, 26, 46)') {
+                document.documentElement.style.setProperty('--backgroundColor', '#2e004f');
+                alert("Theme Switched to: Night Raid");
+            } else {
+                document.documentElement.style.setProperty('--backgroundColor', '#1a1a2e');
+                alert("Theme Switched to: UA High");
+            }
+        }
+    });
+
+    // 3. UI HIDE/MINIMIZE (Shoto Ice Blue)
+    const hideBtn = l("div", {
+        className: "scriptButton",
+        style: {
+            backgroundColor: "rgba(0, 200, 255, 0.2)",
+            border: "2px solid #00c8ff",
+            boxShadow: "0 0 10px #00c8ff"
+        },
+        innerHTML: "👁️ Hide Menu",
+        onclick: function() {
+            _ .style.display = "none";
+            alert("Menu Hidden! Press 'Shift + H' to reveal (if implemented) or refresh.");
+        }
+    });
+
+    // 4. VERSION INFO (All Might Gold)
+    const infoBtn = l("div", {
+        className: "scriptButton",
+        style: {
+            backgroundColor: "rgba(255, 215, 0, 0.2)",
+            border: "2px solid #ffd700",
+            boxShadow: "0 0 10px #ffd700"
+        },
+        innerHTML: "📜 System Info",
+        onclick: function() {
+            alert("System: LilBro24327's Multi-Cheat\nVersion: 1.0.4 BETA\nDeveloper: Dillon\nStatus: Plus Ultra!");
+        }
+    });
+
+    // --- APPEND TO HORIZONTAL CONTAINER ---
+    u.appendChild(discordBtn);
+    u.appendChild(themeBtn);
+    u.appendChild(hideBtn);
+    u.appendChild(infoBtn);
+
 
     // [CONTINUE WITH THE REST OF YOUR CSS/THEME ENGINE BELOW]
 
