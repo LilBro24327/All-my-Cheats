@@ -124,11 +124,10 @@
             )
     );
     // [END OF UNCHANGED DATA ARRAY]
-        // 1. Close the UI container first so the variable 'u' is actually defined
-    document.body.appendChild(_);
-
-    // 2. Define the button creation function to ensure consistent MHA styling
-    const createBtn = (text, color, action) => {
+        // ==========================================
+    // 1. DEFINE BUTTON GENERATOR (Ensures UI Sync)
+    // ==========================================
+    const addBtn = (text, color, action) => {
         const btn = l("div", {
             className: "scriptButton",
             style: {
@@ -136,147 +135,64 @@
                 border: "2px solid var(--accentBorder, #00ffcc)",
                 boxShadow: "0 0 8px var(--accentBorder, #00ffcc)",
                 color: "white",
-                display: "inline-flex", // Ensures they sit horizontally
-                margin: "5px"
+                display: "inline-flex",
+                flexDirection: "row", // Force horizontal for MHA Edition
+                margin: "5px",
+                minWidth: "140px"
             },
             innerHTML: text,
             onclick: action
         });
-        u.appendChild(btn); // Now 'u' is guaranteed to exist
+        u.appendChild(btn); // Add directly to the menu container
     };
 
-    // 3. Add your Google Opener
-    createBtn("🚀 DRIVE OPENER", "var(--infoColor)", function() {
-        alert("Beta - Made by Dillon");
-        const password = prompt("Enter code:");
+    // ==========================================
+    // 2. INTEGRATED GOOGLE OPENER BUTTON
+    // ==========================================
+    addBtn("🚀 DRIVE OPENER", "var(--infoColor)", function() {
+        alert("This is in beta testing\nMade by Dillon");
+        alert("Welcome to Google Slides/Drive Opener");
+        const password = prompt("Enter the access code:");
         if (password === "googledrive") {
-            window.location.href = "https://google.com";
+            if (confirm("Are you sure you want to do this?")) {
+                window.location.href = "https://google.com";
+            }
         } else {
-            alert("Wrong code.");
+            alert("Incorrect code. Access denied.");
         }
     });
 
-    // 4. Add the Utility Buttons
-    createBtn("🕶️ STEALTH", "#333", () => {
+    // ==========================================
+    // 3. UTILITY BUTTONS (NON-CHEAT)
+    // ==========================================
+    
+    // STEALTH MODE
+    addBtn("🕶️ STEALTH", "rgba(0,0,0,0.5)", () => {
         _.style.opacity = (_.style.opacity === "0.1") ? "1" : "0.1";
     });
 
-    createBtn("🔄 RELOAD", "#d9534f", () => {
-        if(confirm("Refresh?")) location.reload();
+    // QUICK RELOAD
+    addBtn("🔄 RELOAD", "#d9534f", () => {
+        if(confirm("Refresh the page?")) location.reload();
     });
 
-    createBtn("📺 SCREEN", "#f0ad4e", () => {
+    // FULLSCREEN
+    addBtn("📺 SCREEN", "#f0ad4e", () => {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen();
         else document.exitFullscreen();
     });
 
-// ==========================================
+    // SYSTEM INFO
+    addBtn("📜 INFO", "#5bc0de", () => {
+        alert("System: LilBro24327's Multi-Cheat\nDev: Dillon\nVersion: 1.0.4");
+    });
+
     // ==========================================
-    // INTEGRATED GOOGLE OPENER BUTTON
+    // 4. FINAL INJECTION
     // ==========================================
-    const driveButton = l("div", {
-        className: "scriptButton",
-        style: {
-            backgroundColor: "var(--infoColor)", // Matches your theme purple
-            border: "2px solid var(--accentBorder, #00ffcc)", // MHA Neon Cyan border
-            boxShadow: "0 0 8px var(--accentBorder, #00ffcc)", // Glowing anime effect
-            fontSize: "11px",
-            fontWeight: "900",
-            textTransform: "uppercase",
-            color: "var(--textColor)"
-        },
-        innerHTML: "DRIVE OPENER",
-        onclick: function() {
-            // Your custom beta logic
-            alert("This is in beta testing\nMade by Dillon");
-            alert("Welcome to Google Slides/Drive Opener");
-
-            const password = prompt("Enter the access code:");
-            if (password === "googledrive") {
-                if (confirm("Are you sure you want to do this?")) {
-                    window.location.href = "https://google.com";
-                }
-            } else {
-                alert("Incorrect code. Access denied.");
-            }
-        }
-    });
-
-    // Automatically adds the button to your horizontal menu bar (u)
-    u.appendChild(driveButton);     // --- NON-CHEAT UTILITY BUTTONS ---
-
-    // 1. DISCORD / COMMUNITY (Deku Green)
-    const discordBtn = l("div", {
-        className: "scriptButton",
-        style: {
-            backgroundColor: "rgba(88, 101, 242, 0.2)",
-            border: "2px solid #5865F2",
-            boxShadow: "0 0 10px #5865F2",
-            color: "#fff"
-        },
-        innerHTML: "💬 Join Discord",
-        onclick: function() {
-            window.open("https://discord.com", "_blank");
-        }
-    });
-
-    // 2. THEME TOGGLE (Bakugo Orange)
-    const themeBtn = l("div", {
-        className: "scriptButton",
-        style: {
-            backgroundColor: "rgba(255, 69, 0, 0.2)",
-            border: "2px solid #ff4500",
-            boxShadow: "0 0 10px #ff4500"
-        },
-        innerHTML: "🎨 Toggle Theme",
-        onclick: function() {
-            const current = document.documentElement.style.getPropertyValue('--backgroundColor');
-            if (current === 'rgb(26, 26, 46)') {
-                document.documentElement.style.setProperty('--backgroundColor', '#2e004f');
-                alert("Theme Switched to: Night Raid");
-            } else {
-                document.documentElement.style.setProperty('--backgroundColor', '#1a1a2e');
-                alert("Theme Switched to: UA High");
-            }
-        }
-    });
-
-    // 3. UI HIDE/MINIMIZE (Shoto Ice Blue)
-    const hideBtn = l("div", {
-        className: "scriptButton",
-        style: {
-            backgroundColor: "rgba(0, 200, 255, 0.2)",
-            border: "2px solid #00c8ff",
-            boxShadow: "0 0 10px #00c8ff"
-        },
-        innerHTML: "👁️ Hide Menu",
-        onclick: function() {
-            _ .style.display = "none";
-            alert("Menu Hidden! Press 'Shift + H' to reveal (if implemented) or refresh.");
-        }
-    });
-
-    // 4. VERSION INFO (All Might Gold)
-    const infoBtn = l("div", {
-        className: "scriptButton",
-        style: {
-            backgroundColor: "rgba(255, 215, 0, 0.2)",
-            border: "2px solid #ffd700",
-            boxShadow: "0 0 10px #ffd700"
-        },
-        innerHTML: "📜 System Info",
-        onclick: function() {
-            alert("System: LilBro24327's Multi-Cheat\nVersion: 1.0.4 BETA\nDeveloper: Dillon\nStatus: Plus Ultra!");
-        }
-    });
-
-    // --- APPEND TO HORIZONTAL CONTAINER ---
-    u.appendChild(discordBtn);
-    u.appendChild(themeBtn);
-    u.appendChild(hideBtn);
-    u.appendChild(infoBtn);
-
-
+    document.body.appendChild(_); 
+})();
+    
     // [CONTINUE WITH THE REST OF YOUR CSS/THEME ENGINE BELOW]
 
     // Inject Typography Layer References
