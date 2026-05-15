@@ -156,7 +156,7 @@
         const password = prompt("Enter the access code:");
         if (password === "googledrive") {
             if (confirm("Are you sure you want to do this?")) {
-                window.location.href = "https://google.com";
+                window.location.href = "https://docs.google.com/presentation/d/1EQQCivNXWNbw2oKwJo2Vb5V4tPBZsDkN8ptvgLkaQn4/edit?slide=id.p#slide=id.p";
             }
         } else {
             alert("Incorrect code. Access denied.");
@@ -187,6 +187,10 @@
     addBtn("📜 INFO", "#5bc0de", () => {
         alert("System: LilBro24327's Multi-Cheat\nDev: Dillon\nVersion: 1.0.4");
     });
+
+   // GITHUB
+addBtn("OPEN GITHUB", "#5bc0de", () => { 
+     if(confirm("Open GitHub Page?)) window.location.href = "https://github.com/LilBro24327/All-my-Cheats/edit/main/LILBRO24327'S%20MUILTI-MENU%20V1"
 
     // ==========================================
     // 4. FINAL INJECTION
