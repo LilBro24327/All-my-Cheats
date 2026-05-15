@@ -190,7 +190,10 @@
 
    // GITHUB
 addBtn("OPEN GITHUB", "#5bc0de", () => { 
-     if(confirm("Open GitHub Page?)) window.location.href = "https://github.com/LilBro24327/All-my-Cheats/edit/main/LILBRO24327'S%20MUILTI-MENU%20V1"
+    if (confirm("Open GitHub Page?")) {
+        window.location.href = "https://github.com/LilBro24327/All-my-Cheats/edit/main/LILBRO24327'S%20MUILTI-MENU%20V1";
+    }
+});
 
     // ==========================================
     // 4. FINAL INJECTION
