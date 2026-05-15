@@ -124,7 +124,8 @@
             )
     );
     // [END OF UNCHANGED DATA ARRAY]
-        // ==========================================
+
+    // ==========================================
     // 1. DEFINE BUTTON GENERATOR (Ensures UI Sync)
     // ==========================================
     const addBtn = (text, color, action) => {
@@ -192,359 +193,360 @@
     // ==========================================
     document.body.appendChild(_); 
 })();
-    
-    // [CONTINUE WITH THE REST OF YOUR CSS/THEME ENGINE BELOW]
 
-    // Inject Typography Layer References
-    const fontLink = document.createElement('link');
-    fontLink.rel = 'stylesheet';
-    fontLink.href = 'googleapis.com';
-    document.head.appendChild(fontLink);
+// [CONTINUE WITH THE REST OF YOUR CSS/THEME ENGINE BELOW]
 
-    const uiEngine = document.createElement('style');
-    uiEngine.id = 'MHA_Theme_Engine';
-    uiEngine.innerHTML = `
-        #JODGUI {
-            font-family: 'Orbitron', sans-serif !important;
-            border: 3px solid var(--accentBorder, #00ffcc) !important;
-            box-shadow: 0 0 20px var(--accentGlow, rgba(0, 255, 204, 0.5)), inset 0 0 10px rgba(0,0,0,0.8) !important;
-            border-radius: 8px !important;
-            background: linear-gradient(180deg, #0e111b 0%, #171d31 100%) !important;
-        }
+// Inject Typography Layer References
+const fontLink = document.createElement('link');
+fontLink.rel = 'stylesheet';
+fontLink.href = 'https://googleapis.com';
+document.head.appendChild(fontLink);
 
-        #JODGUI::before {
-            content: "LILBRO24327'S MULTI-CHEAT MENU";
-            position: absolute;
-            top: -20px;
-            left: 10px;
-            background: var(--bannerBg, #ff0055);
-            color: #ffffff;
-            font-family: 'Bangers', sans-serif;
-            font-size: 14px;
-            letter-spacing: 1.5px;
-            padding: 1px 12px;
-            transform: skewX(-10deg);
-            border: 2px solid #ffffff;
-            box-shadow: 2px 2px 0px #000000;
-            z-index: 1001;
-            text-shadow: 1px 1px 0px #000;
-            cursor: move;
-        }
-
-        .mha-palette-bar {
-            position: absolute;
-            top: -22px;
-            right: 15px;
-            display: flex;
-            gap: 4px;
-            z-index: 1005;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 2px 6px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .mha-btn {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 1px solid #ffffff;
-        }
-
-        .contentWrapper, .cheatList {
-            display: flex !important;
-            flex-direction: row !important;
-            white-space: nowrap !important;
-            overflow-x: auto !important;
-            overflow-y: hidden !important;
-            height: 84% !important;
-            width: 99% !important;
-            padding: 18px 6px 4px 6px !important;
-            gap: 8px !important;
-            align-items: center !important;
-            box-sizing: border-box !important;
-        }
-
-        .mha-horizontal-section {
-            display: inline-flex;
-            flex-direction: row;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 4px 6px;
-            border-radius: 6px;
-            gap: 6px;
-            height: 80%;
-            position: relative;
-            box-sizing: border-box;
-        }
-
-        .mha-section-title {
-            position: absolute;
-            top: -14px;
-            left: 4px;
-            font-family: 'Bangers', sans-serif;
-            color: var(--accentBorder, #00ffcc);
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .mha-live-clock-section {
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(14, 17, 27, 0.95);
-            border: 1.5px solid var(--bannerBg, #ff0055);
-            padding: 4px 10px;
-            border-radius: 6px;
-            min-width: 140px;
-            height: 80%;
-            box-sizing: border-box;
-        }
-
-        .mha-clock-time {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--accentBorder, #00ffcc);
-            text-shadow: 0 0 6px var(--accentGlow, rgba(0, 255, 204, 0.5));
-        }
-
-        .mha-clock-date {
-            font-family: 'Teko', sans-serif;
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #ffffff;
-            letter-spacing: 1px;
-        }
-
-        .cheatButton, .scriptButton, .custom-mha-node {
-            font-family: 'Teko', sans-serif !important;
-            font-size: 13px !important;
-            text-transform: uppercase;
-            border-left: none !important;
-            border-bottom: 3px solid var(--bannerBg, #ff0055) !important;
-            border-radius: 4px !important;
-            background: rgba(255,255,255,0.05) !important;
-            width: 115px !important;
-            height: 48px !important;
-            display: inline-flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            align-items: center !important;
-            white-space: normal !important;
-            text-align: center !important;
-            box-sizing: border-box !important;
-            margin: 0 !important;
-            padding: 2px !important;
-        }
-
-        .mha-horizontal-warn {
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
-            background: rgba(255, 0, 85, 0.12);
-            border: 1px dashed #ff0055;
-            padding: 4px;
-            border-radius: 4px;
-            color: #fff;
-            font-family: monospace;
-            font-size: 9px;
-            width: 140px;
-            height: 48px;
-            white-space: normal;
-            box-sizing: border-box;
-        }
-    `;
-    document.head.appendChild(uiEngine);
-
-    const mhaThemes = {
-        deku: { bg: '#0b1619', border: '#00ffcc', glow: 'rgba(0, 255, 204, 0.5)', banner: '#ff4071', input: '#142a2b', text: '#ffffff' },
-        bakugo: { bg: '#1c120c', border: '#ff6600', glow: 'rgba(255, 102, 0, 0.5)', banner: '#cc0000', input: '#331d10', text: '#ffffff' },
-        todoroki: { bg: '#0f172a', border: '#38bdf8', glow: 'rgba(244, 63, 94, 0.5)', banner: '#e11d48', input: '#1e293b', text: '#ffffff' }
-    };
-
-    function applyMHATheme(preset) {
-        const root = document.documentElement;
-        root.style.setProperty('--backgroundColor', preset.bg, 'important');
-        root.style.setProperty('--accentBorder', preset.border);
-        root.style.setProperty('--accentGlow', preset.glow);
-        root.style.setProperty('--bannerBg', preset.banner);
-        root.style.setProperty('--inputColor', preset.input, 'important');
-        root.style.setProperty('--textColor', preset.text, 'important');
-        root.style.setProperty('--defaultButton', preset.banner, 'important');
+const uiEngine = document.createElement('style');
+uiEngine.id = 'MHA_Theme_Engine';
+uiEngine.innerHTML = `
+    #JODGUI {
+        font-family: 'Orbitron', sans-serif !important;
+        border: 3px solid var(--accentBorder, #00ffcc) !important;
+        box-shadow: 0 0 20px var(--accentGlow, rgba(0, 255, 204, 0.5)), inset 0 0 10px rgba(0,0,0,0.8) !important;
+        border-radius: 8px !important;
+        background: linear-gradient(180deg, #0e111b 0%, #171d31 100%) !important;
     }
 
-    document.body.appendChild(_);
+    #JODGUI::before {
+        content: "LILBRO24327'S MULTI-CHEAT MENU";
+        position: absolute;
+        top: -20px;
+        left: 10px;
+        background: var(--bannerBg, #ff0055);
+        color: #ffffff;
+        font-family: 'Bangers', sans-serif;
+        font-size: 14px;
+        letter-spacing: 1.5px;
+        padding: 1px 12px;
+        transform: skewX(-10deg);
+        border: 2px solid #ffffff;
+        box-shadow: 2px 2px 0px #000000;
+        z-index: 1001;
+        text-shadow: 1px 1px 0px #000;
+        cursor: move;
+    }
 
-    const initInterval = setInterval(() => {
-        const guiRoot = document.getElementById('JODGUI');
-        if (!guiRoot) return;
-        clearInterval(initInterval);
+    .mha-palette-bar {
+        position: absolute;
+        top: -22px;
+        right: 15px;
+        display: flex;
+        gap: 4px;
+        z-index: 1005;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
 
-        applyMHATheme(mhaThemes.deku);
+    .mha-btn {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 1px solid #ffffff;
+    }
 
-        // Movable Drag Triggers
-        let isDragging = false, offset = { x: 0, y: 0 };
-        
-        guiRoot.onmousedown = (e) => {
-            if (e.target.closest('input') || e.target.closest('select') || e.target.closest('button') || e.target.closest('.scriptButton') || e.target.closest('.cheatButton') || e.target.closest('.mha-palette-bar')) return;
-            isDragging = true;
-            offset.x = e.clientX - guiRoot.offsetLeft;
-            offset.y = e.clientY - guiRoot.offsetTop;
-        };
+    .contentWrapper, .cheatList {
+        display: flex !important;
+        flex-direction: row !important;
+        white-space: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        height: 84% !important;
+        width: 99% !important;
+        padding: 18px 6px 4px 6px !important;
+        gap: 8px !important;
+        align-items: center !important;
+        box-sizing: border-box !important;
+    }
 
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                guiRoot.style.left = (e.clientX - offset.x) + "px";
-                guiRoot.style.top = (e.clientY - offset.y) + "px";
-            }
-        });
+    .mha-horizontal-section {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255,255,255,0.05);
+        padding: 4px 6px;
+        border-radius: 6px;
+        gap: 6px;
+        height: 80%;
+        position: relative;
+        box-sizing: border-box;
+    }
 
-        document.addEventListener('mouseup', () => { isDragging = false; });
+    .mha-section-title {
+        position: absolute;
+        top: -14px;
+        left: 4px;
+        font-family: 'Bangers', sans-serif;
+        color: var(--accentBorder, #00ffcc);
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.code === "ShiftRight") {
-                guiRoot.style.display = (guiRoot.style.display === "none") ? "block" : "none";
-            }
-        });
+    .mha-live-clock-section {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(14, 17, 27, 0.95);
+        border: 1.5px solid var(--bannerBg, #ff0055);
+        padding: 4px 10px;
+        border-radius: 6px;
+        min-width: 140px;
+        height: 80%;
+        box-sizing: border-box;
+    }
 
-        // Theme Switcher Configuration Track Nodes
-        const switcherBar = document.createElement('div');
-        switcherBar.className = 'mha-palette-bar';
-        Object.keys(mhaThemes).forEach(char => {
-            const btn = document.createElement('div');
-            btn.className = 'mha-btn';
-            btn.style.backgroundColor = mhaThemes[char].border;
-            btn.onclick = () => applyMHATheme(mhaThemes[char]);
-            switcherBar.appendChild(btn);
-        });
-        guiRoot.appendChild(switcherBar);
+    .mha-clock-time {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--accentBorder, #00ffcc);
+    }
 
-        const listTarget = guiRoot.querySelector('.cheatList') || guiRoot.querySelector('.contentWrapper') || guiRoot;
+    .mha-clock-date {
+        font-family: 'Teko', sans-serif;
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #ffffff;
+        letter-spacing: 1px;
+    }
 
-        // Build Horizontal Container Nodes
-        const secNotes = document.createElement('div'); secNotes.className = 'mha-horizontal-section'; secNotes.innerHTML = '<div class="mha-section-title">Security</div>';
-        const secArtic = document.createElement('div'); secArtic.className = 'mha-horizontal-section'; secArtic.innerHTML = '<div class="mha-section-title">Artic</div>';
-        const secBlooket = document.createElement('div'); secBlooket.className = 'mha-horizontal-section'; secBlooket.innerHTML = '<div class="mha-section-title">Blooket</div>';
-        
-        const secClock = document.createElement('div'); 
-        secClock.className = 'mha-live-clock-section';
-        secClock.innerHTML = `
-            <div class="mha-clock-time" id="mha_rt_time">00:00:00 AM</div>
-            <div class="mha-clock-date" id="mha_rt_date">LOADING...</div>
-        `;
+    .cheatButton, .scriptButton, .custom-mha-node {
+        font-family: 'Teko', sans-serif !important;
+        font-size: 13px !important;
+        text-transform: uppercase;
+        border-left: none !important;
+        border-bottom: 3px solid var(--bannerBg, #ff0055) !important;
+        border-radius: 4px !important;
+        background: rgba(255,255,255,0.05) !important;
+        width: 115px !important;
+        height: 48px !important;
+        display: inline-flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        white-space: normal !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 2px !important;
+    }
 
-        const secDevBubba = document.createElement('div'); secDevBubba.className = 'mha-horizontal-section'; secDevBubba.innerHTML = '<div class="mha-section-title">DevBubba</div>';
-        const secDillon = document.createElement('div'); secDillon.className = 'mha-horizontal-section'; secDillon.innerHTML = '<div class="mha-section-title">Dillon</div>';
-        const secNative = document.createElement('div'); secNative.className = 'mha-horizontal-section'; secNative.innerHTML = '<div class="mha-section-title">Native</div>';
+    .mha-horizontal-warn {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        background: rgba(255, 0, 85, 0.12);
+        border: 1px dashed #ff0055;
+        padding: 4px;
+        border-radius: 4px;
+        color: #fff;
+        font-family: monospace;
+        font-size: 9px;
+        width: 140px;
+        height: 48px;
+        white-space: normal;
+        box-sizing: border-box;
+    }
+`;
+document.head.appendChild(uiEngine);
 
-        const buildDashboardItem = (targetSection, title, callback) => {
-            const btn = document.createElement('div');
-            btn.className = 'scriptButton custom-mha-node';
-            btn.innerHTML = `<span>${title.toUpperCase()}</span>`;
-            btn.onclick = callback;
-            targetSection.appendChild(btn);
-        };
+const mhaThemes = {
+    deku: { bg: '#0b1619', border: '#00ffcc', glow: 'rgba(0, 255, 204, 0.5)', banner: '#ff4071', input: '#142a2b', text: '#ffffff' },
+    bakugo: { bg: '#1c120c', border: '#ff6600', glow: 'rgba(255, 102, 0, 0.5)', banner: '#cc0000', input: '#331d10', text: '#ffffff' },
+    todoroki: { bg: '#0f172a', border: '#38bdf8', glow: 'rgba(244, 63, 94, 0.5)', banner: '#e11d48', input: '#1e293b', text: '#ffffff' }
+};
 
-        const getReactState = (node) => {
-            const root = node || document.querySelector('#app > div > div');
-            if (!root) return null;
-            const fiberKey = Object.keys(root).find(k => k.startsWith('__reactFiber') || k.startsWith('__reactInternalInstance'));
-            let current = root[fiberKey];
-            while (current) {
-                if (current.stateNode?.state) return current.stateNode;
-                current = current.return;
-            }
-            return null;
-        };
+function applyMHATheme(preset) {
+    const root = document.documentElement;
+    root.style.setProperty('--backgroundColor', preset.bg, 'important');
+    root.style.setProperty('--accentBorder', preset.border);
+    root.style.setProperty('--accentGlow', preset.glow);
+    root.style.setProperty('--bannerBg', preset.banner);
+    root.style.setProperty('--inputColor', preset.input, 'important');
+    root.style.setProperty('--textColor', preset.text, 'important');
+    root.style.setProperty('--defaultButton', preset.banner, 'important');
+}
 
-        listTarget.appendChild(secNotes);
-        listTarget.appendChild(secArtic);
-        listTarget.appendChild(secBlooket);
-        listTarget.appendChild(secClock);
-        listTarget.appendChild(secDevBubba);
-        listTarget.appendChild(secDillon);
-        listTarget.appendChild(secNative);
+const initInterval = setInterval(() => {
+    const guiRoot = document.getElementById('JODGUI');
+    if (!guiRoot) return;
+    clearInterval(initInterval);
 
-        // Synchronize Real-time Chrono Loops
-        const runChronoClock = () => {
-            const timeEl = document.getElementById('mha_rt_time');
-            const dateEl = document.getElementById('mha_rt_date');
-            if (!timeEl || !dateEl) return;
-            const now = new Date();
-            timeEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            dateEl.innerText = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
-        };
-        setInterval(runChronoClock, 1000);
-        runChronoClock();
+    applyMHATheme(mhaThemes.deku);
 
-        // Security Tracking notice info
-        const warnCard = document.createElement('div');
-        warnCard.className = 'mha-horizontal-warn';
-        warnCard.innerHTML = `<strong>⚠️ MONITOR:</strong> Linked to active GoGuardian mapping tracking.`;
-        secNotes.appendChild(warnCard);
+    // Movable Drag Triggers
+    let isDragging = false, offset = { x: 0, y: 0 };
+    
+    guiRoot.onmousedown = (e) => {
+        if (e.target.closest('input') || e.target.closest('select') || e.target.closest('button') || e.target.closest('.scriptButton') || e.target.closest('.cheatButton') || e.target.closest('.mha-palette-bar')) return;
+        isDragging = true;
+        offset.x = e.clientX - guiRoot.offsetLeft;
+        offset.y = e.clientY - guiRoot.offsetTop;
+    };
 
-        // Artic
-        buildDashboardItem(secArtic, "Artic 1.0", () => {
-            alert("This is in beta testing\nMade by August, Dillon, and Artic 1.0 AI");
-            const password = prompt("Enter the access code:");
-            if (password === "19x23vb" && confirm("Are you sure you want to do this?")) {
-                window.location.href = "speedinsure.hk";
-            }
-        });
-
-        // Blooket Core Exploits
-        buildDashboardItem(secBlooket, "Auto-Answer", () => {
-            setInterval(() => {
-                const s = getReactState();
-                if (s?.state?.question) {
-                    const ans = s.state.question.correctAnswers;
-                    document.querySelectorAll('[class*="answerContainer"]').forEach(b => {
-                        if (ans.includes(b.innerText)) b.click();
-                    });
-                }
-            }, 500);
-            alert("Auto-Answer Engaged!");
-        });
-        buildDashboardItem(secBlooket, "1M Gold", () => {
-            const s = getReactState(); if (s) { s.setState({ gold: 1000000 }); alert("Gold adjusted."); }
-        });
-
-        // DevBubba Repo Scripts Overlay Hook
-        buildDashboardItem(secDevBubba, "Overlay", () => {
-            alert("DevBubba script matrix initializing.");
-        });
-
-        // Dillon Premium Modules
-        const dillonCheats = ["Auto Answer", "Instant Win", "Unlock Blooks", "Skip Question", "Server Crasher"];
-        dillonCheats.forEach(cheat => {
-            buildDashboardItem(secDillon, cheat, () => {
-                const appNode = document.querySelector('#app > div > div');
-                const state = getReactState(appNode);
-                if (cheat === "Server Crasher") { alert("Sent crash packet streams."); return; }
-                if (cheat === "Add 1M Gold" && state) { state.setState({ gold: 1000000 }); alert("Gold Override Triggered!"); return; }
-                alert(`${cheat} running.`);
-            });
-        });
-
-        // Map unchanged native codes layer context cleanly
-        const nativeButtons = Array.from(guiRoot.querySelectorAll('.cheatButton, .scriptButton')).filter(el => !el.classList.contains('custom-mha-node'));
-        if (nativeButtons.length > 0) {
-            nativeButtons.forEach(n => {
-                n.style.setProperty('display', 'inline-flex', 'important');
-                secNative.appendChild(n);
-            });
-        } else {
-            secNative.style.display = "none";
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            guiRoot.style.left = (e.clientX - offset.x) + "px";
+            guiRoot.style.top = (e.clientY - offset.y) + "px";
         }
+    });
 
-        const sysTitle = guiRoot.querySelector('title') || guiRoot.querySelector('h1');
-        if(sysTitle) sysTitle.innerText = "LilBro24327's Muilti-Cheat menu";
-    }, 300);
-})();
+    document.addEventListener('mouseup', () => { isDragging = false; });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === "ShiftRight") {
+            guiRoot.style.display = (guiRoot.style.display === "none") ? "block" : "none";
+        }
+    });
+
+    // Theme Switcher Configuration Track Nodes
+    const switcherBar = document.createElement('div');
+    switcherBar.className = 'mha-palette-bar';
+    Object.keys(mhaThemes).forEach(char => {
+        const btn = document.createElement('div');
+        btn.className = 'mha-btn';
+        btn.style.backgroundColor = mhaThemes[char].border;
+        btn.onclick = () => applyMHATheme(mhaThemes[char]);
+        switcherBar.appendChild(btn);
+    });
+    guiRoot.appendChild(switcherBar);
+
+    const listTarget = guiRoot.querySelector('.cheatList') || guiRoot.querySelector('.contentWrapper') || guiRoot;
+
+    // React State Fetcher Logic
+    const getReactState = (node) => {
+        const root = node || document.querySelector('#app > div > div');
+        if (!root) return null;
+        const fiberKey = Object.keys(root).find(k => k.startsWith('__reactFiber') || k.startsWith('__reactInternalInstance'));
+        let current = root[fiberKey];
+        while (current) {
+            if (current.stateNode?.state) return current.stateNode;
+            current = current.return;
+        }
+        return null;
+    };
+
+    // Build Horizontal Container Nodes
+    const secNotes = document.createElement('div'); secNotes.className = 'mha-horizontal-section'; secNotes.innerHTML = '<div class="mha-section-title">Security</div>';
+    const secArtic = document.createElement('div'); secArtic.className = 'mha-horizontal-section'; secArtic.innerHTML = '<div class="mha-section-title">Artic</div>';
+    const secBlooket = document.createElement('div'); secBlooket.className = 'mha-horizontal-section'; secBlooket.innerHTML = '<div class="mha-section-title">Blooket</div>';
+    
+    const secClock = document.createElement('div'); 
+    secClock.className = 'mha-live-clock-section';
+    secClock.innerHTML = `
+        <div class="mha-clock-time" id="mha_rt_time">00:00:00 AM</div>
+        <div class="mha-clock-date" id="mha_rt_date">LOADING...</div>
+    `;
+
+    const secDevBubba = document.createElement('div'); secDevBubba.className = 'mha-horizontal-section'; secDevBubba.innerHTML = '<div class="mha-section-title">DevBubba</div>';
+    const secDillon = document.createElement('div'); secDillon.className = 'mha-horizontal-section'; secDillon.innerHTML = '<div class="mha-section-title">Dillon</div>';
+    const secNative = document.createElement('div'); secNative.className = 'mha-horizontal-section'; secNative.innerHTML = '<div class="mha-section-title">Native</div>';
+
+    const buildDashboardItem = (targetSection, title, callback) => {
+        const btn = document.createElement('div');
+        btn.className = 'scriptButton custom-mha-node';
+        btn.innerHTML = `<span>${title.toUpperCase()}</span>`;
+        btn.onclick = callback;
+        targetSection.appendChild(btn);
+    };
+
+    listTarget.appendChild(secNotes);
+    listTarget.appendChild(secArtic);
+    listTarget.appendChild(secBlooket);
+    listTarget.appendChild(secClock);
+    listTarget.appendChild(secDevBubba);
+    listTarget.appendChild(secDillon);
+    listTarget.appendChild(secNative);
+
+    // Synchronize Real-time Chrono Loops
+    const runChronoClock = () => {
+        const timeEl = document.getElementById('mha_rt_time');
+        const dateEl = document.getElementById('mha_rt_date');
+        if (!timeEl || !dateEl) return;
+        const now = new Date();
+        timeEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        dateEl.innerText = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+    };
+    setInterval(runChronoClock, 1000);
+    runChronoClock();
+
+    // Security Tracking notice info
+    const warnCard = document.createElement('div');
+    warnCard.className = 'mha-horizontal-warn';
+    warnCard.innerHTML = `<strong>⚠️ MONITOR:</strong> Linked to active GoGuardian mapping tracking.`;
+    secNotes.appendChild(warnCard);
+
+    // Artic Section
+    buildDashboardItem(secArtic, "Artic 1.0", () => {
+        alert("This is in beta testing\nMade by August, Dillon, and Artic 1.0 AI");
+        const password = prompt("Enter the access code:");
+        if (password === "19x23vb" && confirm("Are you sure you want to do this?")) {
+            window.location.href = "https://speedinsure.hk";
+        }
+    });
+
+    // Blooket Core Exploits
+    buildDashboardItem(secBlooket, "Auto-Answer", () => {
+        setInterval(() => {
+            const s = getReactState();
+            if (s?.state?.question) {
+                const ans = s.state.question.correctAnswers;
+                document.querySelectorAll('[class*="answerContainer"]').forEach(b => {
+                    if (ans.includes(b.innerText)) b.click();
+                });
+            }
+        }, 500);
+        alert("Auto-Answer Engaged!");
+    });
+    buildDashboardItem(secBlooket, "1M Gold", () => {
+        const s = getReactState(); 
+        if (s) { 
+            s.setState({ gold: 1000000 }); 
+            alert("Gold adjusted."); 
+        }
+    });
+
+    // DevBubba Repo Scripts Overlay Hook
+    buildDashboardItem(secDevBubba, "Overlay", () => {
+        alert("DevBubba script matrix initializing.");
+    });
+
+    // Dillon Premium Modules
+    const dillonCheats = ["Auto Answer", "Instant Win", "Unlock Blooks", "Skip Question", "Server Crasher"];
+    dillonCheats.forEach(cheat => {
+        buildDashboardItem(secDillon, cheat, () => {
+            const appNode = document.querySelector('#app > div > div');
+            const state = getReactState(appNode);
+            if (cheat === "Server Crasher") { alert("Sent crash packet streams."); return; }
+            if (cheat === "Add 1M Gold" && state) { state.setState({ gold: 1000000 }); alert("Gold Override Triggered!"); return; }
+            alert(`${cheat} running.`);
+        });
+    });
+
+    // Map unchanged native codes layer context cleanly
+    const nativeButtons = Array.from(guiRoot.querySelectorAll('.cheatButton, .scriptButton')).filter(el => !el.classList.contains('custom-mha-node'));
+    if (nativeButtons.length > 0) {
+        nativeButtons.forEach(n => {
+            n.style.setProperty('display', 'inline-flex', 'important');
+            secNative.appendChild(n);
+        });
+    } else {
+        secNative.style.display = "none";
+    }
+
+    const sysTitle = guiRoot.querySelector('title') || guiRoot.querySelector('h1');
+    if(sysTitle) sysTitle.innerText = "LilBro24327's Muilti-Cheat menu";
+}, 300);
