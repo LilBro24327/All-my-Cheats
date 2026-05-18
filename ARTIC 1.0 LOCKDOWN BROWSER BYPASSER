@@ -6,7 +6,7 @@ alert("Welcome to Artic 1.0 AI Lockdown browser");
 const password = prompt("Enter the access code:");
 
 // 2. Check if the code is correct
-if (password === "2026vbc") {
+if (password === "19x23vb") {
     const userConfirmed = confirm("Are you sure you want to do this?");
     
     if (userConfirmed) {
