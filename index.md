@@ -1,22 +1,22 @@
 ---
 layout: default
-title: Home | My Portfolio
+title: Home | My Work
 ---
 
-# 👋 Hello, I'm [Your Name]
-### 🚀 [Your Profession / Specialization]
+# 👋 Hello, I'm Dillon
+### 🚀 Coding and Making Code.
 
 [![GitHub Follow](https://shields.io)](https://github.com)
-[![Website](https://shields.io)](https://YOUR_USERNAME.github.io)
+[![Website](https://shields.io)](https://LilBro24327.github.io)
 
 ---
 
 ## 🛠️ Tech Stack & Skills
 Here are some of the tools, technologies, and languages I work with:
 
-* **Frontend:** HTML5, CSS3, JavaScript, React
-* **Backend:** Node.js, Python, PostgreSQL
-* **Tools & DevOps:** Git, GitHub, Docker, AWS
+* **Frontend:** CSS, JavaScript.
+* **Backend:** Python.
+* **Tools & DevOps:** Github, Scratch.
 
 ---
 
