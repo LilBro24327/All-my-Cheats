@@ -37,6 +37,5 @@ Here are some of the tools, technologies, and languages I work with:
 
 
 ## 📫 Connect With Me
-Feel free to reach out if you'd like to collaborate on a project or just chat about technology!
-
-* **Email:** [Your.Email@example.com](mailto:Dillon.Cogburn@arkadelphiaschools.org)
+Feel free to reach out if you'd like to collaborate on a project or just chat about something, feel free to reach out!
+Dillon.Cogburn@arkadelphiaschools.org
