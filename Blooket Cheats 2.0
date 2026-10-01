@@ -1,0 +1,358 @@
+(() => {
+    // Prevent stacking multiple menus if run twice
+    document.getElementById("JODGUI")?.remove();
+    document.getElementById("JODGUI-style")?.remove();
+
+    // ---------- 1. STATE FINDER ----------
+    // Walks up the React fiber tree looking for a component instance that has setState.
+    const getFiber = () => {
+        const el = document.querySelector('#app > div > div');
+        if (!el) return null;
+        const key = Object.keys(el).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));
+        return key ? el[key] : null;
+    };
+
+    // Returns the React class instance (has .state, .props, .setState) or null
+    const getNode = () => {
+        let fiber = getFiber();
+        for (let i = 0; fiber && i < 30; i++, fiber = fiber.return) {
+            const n = fiber.stateNode;
+            if (n && typeof n.setState === 'function' && n.state) return n;
+        }
+        return null;
+    };
+
+    // Tries a few likely shapes for the current question's correct answers
+    const getCorrectAnswers = () => {
+        const node = getNode();
+        if (!node) return null;
+        const { state, props } = node;
+        const q =
+            state.question ||
+            props?.client?.question ||
+            state.questions?.[state.questionIndex] ||
+            props?.questions?.[props?.questionIndex];
+        const answers = q?.correctAnswers || (q?.correctAnswer ? [q.correctAnswer] : null);
+        return answers?.map(a => String(a).trim()) || null;
+    };
+
+    const getAnswerButtons = () => [...document.querySelectorAll('[class*="answerContainer"]')];
+    const norm = s => String(s).replace(/\s+/g, ' ').trim();
+
+    // ---------- 2. HELPERS ----------
+    function cE(type, props = {}, ...children) {
+        const el = document.createElement(type);
+        for (const key in props) {
+            if (key === 'style' && typeof props[key] === 'object') Object.assign(el.style, props[key]);
+            else el[key] = props[key];
+        }
+        children.forEach(c => el.append(c));
+        return el;
+    }
+
+    // Small non-blocking message instead of alert()
+    const toast = msg => {
+        const t = cE("div", { innerText: msg, className: "jod-toast" });
+        document.body.append(t);
+        setTimeout(() => t.remove(), 2200);
+    };
+
+    // ---------- 3. STYLES ----------
+    document.head.appendChild(cE("style", {
+        id: "JODGUI-style",
+        innerHTML: `
+            #JODGUI {
+                position: fixed; top: 10%; left: 10%; width: 600px; height: 400px;
+                background: #0bc2cf; border: 4px solid #333; border-radius: 15px;
+                z-index: 10000; display: flex; font-family: 'Nunito', sans-serif;
+                box-shadow: 0 0 20px rgba(0,0,0,0.5); overflow: hidden;
+            }
+            #JODGUI .sidebar { width: 150px; background: #9a49aa; display: flex; flex-direction: column; overflow-y: auto; }
+            #JODGUI .drag { padding: 8px; background: rgba(0,0,0,0.25); color: #fff; font-size: 12px; cursor: move; text-align: center; user-select: none; }
+            #JODGUI .tab-btn { padding: 15px; color: white; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.1); font-weight: bold; }
+            #JODGUI .tab-btn:hover { background: rgba(255,255,255,0.2); }
+            #JODGUI .content { flex: 1; background: #40115f; padding: 20px; color: white; overflow-y: auto; }
+            #JODGUI .cheat-card { background: #7a039d; padding: 12px; margin: 8px 0; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+            #JODGUI .cheat-card:hover { border-color: #0bc2cf; background: #8e04b5; }
+            #JODGUI .cheat-card.on { border-color: lime; }
+            #JODGUI .row { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 14px; }
+            #JODGUI input[type=number] { width: 80px; }
+            .jod-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #222; color: #fff;
+                         padding: 10px 18px; border-radius: 8px; z-index: 10001; font-family: 'Nunito', sans-serif; }
+        `
+    }));
+
+    // ---------- 4. UI SKELETON ----------
+    const contentArea = cE("div", { className: "content" });
+    const sidebar = cE("div", { className: "sidebar" });
+    const dragBar = cE("div", { className: "drag", innerText: "drag me" });
+    sidebar.append(dragBar);
+    const gui = cE("div", { id: "JODGUI" }, sidebar, contentArea);
+
+    // Draggable
+    dragBar.onmousedown = e => {
+        const dx = e.clientX - gui.offsetLeft, dy = e.clientY - gui.offsetTop;
+        const move = ev => { gui.style.left = ev.clientX - dx + "px"; gui.style.top = ev.clientY - dy + "px"; };
+        const up = () => { document.removeEventListener("mousemove", move); document.removeEventListener("mouseup", up); };
+        document.addEventListener("mousemove", move);
+        document.addEventListener("mouseup", up);
+    };
+
+    // ---------- 5. CHEATS ----------
+    let autoTimer = null;
+    let autoDelay = 800; // ms, so it doesn't look instant
+
+    const stopAuto = () => { clearInterval(autoTimer); autoTimer = null; };
+
+    const toggleAuto = card => {
+        if (autoTimer) {
+            stopAuto();
+            card?.classList.remove("on");
+            return toast("Auto-answer off");
+        }
+        autoTimer = setInterval(() => {
+            const correct = getCorrectAnswers();
+            if (!correct) return;
+            const btn = getAnswerButtons().find(b => correct.some(c => norm(b.innerText) === norm(c)));
+            if (btn && !btn.dataset.jodClicked) {
+                btn.dataset.jodClicked = "1";
+                setTimeout(() => { btn.click(); }, autoDelay);
+                // allow re-clicking next question (buttons get re-rendered, but be safe)
+                setTimeout(() => delete btn.dataset.jodClicked, autoDelay + 1500);
+            }
+        }, 500);
+        card?.classList.add("on");
+        toast("Auto-answer on");
+    };
+
+    const highlight = () => {
+        const correct = getCorrectAnswers();
+        if (!correct) return toast("No question found on this screen");
+        getAnswerButtons().forEach(b => {
+            if (correct.some(c => norm(b.innerText) === norm(c))) b.style.backgroundColor = "lime";
+        });
+    };
+
+    const setStateSafe = (patch, okMsg, failMsg) => {
+        const node = getNode();
+        if (!node) return toast(failMsg || "Couldn't find game state. Are you in a game?");
+        try { node.setState(patch); toast(okMsg); }
+        catch (e) { console.error(e); toast("Failed: " + e.message); }
+    };
+
+    const cheats = {
+        addGold: amount => setStateSafe({ gold: amount, gold2: amount }, `Gold set to ${amount}`, "Join a Gold Quest game first!"),
+        cryptoHack: amount => {
+            const node = getNode();
+            if (!node) return toast("Join a Crypto Hack game first!");
+            const patch = { crypto: amount, crypto2: amount };
+            if (node.state.correctPassword) patch.password = node.state.correctPassword;
+            setStateSafe(patch, "Crypto updated");
+        },
+        factoryCash: amount => setStateSafe({ cash: amount }, `Cash set to ${amount}`, "Join a Factory game first!")
+    };
+
+    // ---------- 5b. EXTRA EFFECTS & TOOLS ----------
+    document.head.appendChild(cE("style", {
+        id: "JODGUI-fx",
+        innerHTML: `
+            @keyframes jodRainbow { to { filter: hue-rotate(360deg); } }
+            @keyframes jodShake { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-6px,4px); } 50% { transform: translate(5px,-5px); } 75% { transform: translate(-4px,-3px); } }
+            @keyframes jodFall { to { transform: translateY(110vh) rotate(360deg); } }
+            html.jod-rainbow #app { animation: jodRainbow 4s linear infinite; }
+            html.jod-flip #app { transform: rotate(180deg); }
+            html.jod-shake #app { animation: jodShake 0.3s infinite; }
+            html.jod-comic #app, html.jod-comic #app * { font-family: 'Comic Sans MS', 'Comic Sans', cursive !important; }
+            html.jod-blur [class*="answerContainer"] { filter: blur(7px); }
+            html.jod-mirror #app { transform: scaleX(-1); }
+            html.jod-gray #app { filter: grayscale(1); }
+            html.jod-big #app { zoom: 1.4; }
+            .jod-emoji { position: fixed; top: -40px; font-size: 32px; z-index: 10001; pointer-events: none; animation: jodFall linear forwards; }
+            .jod-overlay { position: fixed; inset: 0; z-index: 10002; display: flex; align-items: center; justify-content: center;
+                           flex-direction: column; background: rgba(0,0,0,0.88); color: #fff; font-family: 'Nunito', sans-serif; text-align: center; cursor: pointer; }
+        `
+    }));
+
+    const FX_CLASSES = ["jod-rainbow", "jod-flip", "jod-shake", "jod-comic", "jod-blur", "jod-mirror", "jod-gray", "jod-big"];
+    const root = document.documentElement;
+
+    const emojiRain = (emojis = "🎉🔥💀😂🤡", seconds = 5) => {
+        const list = [...emojis];
+        const iv = setInterval(() => {
+            const e = cE("div", { className: "jod-emoji", innerText: list[Math.floor(Math.random() * list.length)] });
+            e.style.left = Math.random() * 100 + "vw";
+            e.style.animationDuration = 2 + Math.random() * 2 + "s";
+            document.body.append(e);
+            setTimeout(() => e.remove(), 4200);
+        }, 80);
+        setTimeout(() => clearInterval(iv), seconds * 1000);
+    };
+
+    const overlay = (html) => {
+        const o = cE("div", { className: "jod-overlay", innerHTML: html });
+        o.onclick = () => o.remove();
+        document.body.append(o);
+    };
+
+    const copyText = async (text) => {
+        try { await navigator.clipboard.writeText(text); toast("Copied!"); }
+        catch { toast("Clipboard blocked by browser"); }
+    };
+
+    const clearAllFx = () => {
+        FX_CLASSES.forEach(c => root.classList.remove(c));
+        document.querySelectorAll(".jod-emoji, .jod-overlay").forEach(e => e.remove());
+        document.querySelectorAll('[class*="answerContainer"]').forEach(b => { b.style.backgroundColor = ""; b.style.opacity = ""; });
+        document.title = originalTitle;
+    };
+    const originalTitle = document.title;
+
+    // Hotkey: press Right Shift to hide/show the menu
+    const onKey = e => {
+        if (e.code === "ShiftRight" && !e.repeat && !/INPUT|TEXTAREA/.test(document.activeElement?.tagName)) {
+            gui.style.display = gui.style.display === "none" ? "flex" : "none";
+        }
+    };
+    window.addEventListener("keydown", onKey);
+
+    const closeMenu = () => {
+        stopAuto();
+        clearAllFx();
+        window.removeEventListener("keydown", onKey);
+        gui.remove();
+    };
+
+    // ---------- 6. TABS ----------
+    function addFunction(name, callback, isToggle = false) {
+        const card = cE("div", { className: "cheat-card", innerText: name });
+        card.onclick = () => callback(card);
+        contentArea.append(card);
+        return card;
+    }
+
+    // A number input + card that passes the value to the callback
+    function addAmountFunction(name, defaultVal, callback) {
+        const input = cE("input", { type: "number", value: defaultVal });
+        const card = cE("div", { className: "cheat-card", innerText: name, style: { flex: "1", margin: "0" } });
+        card.onclick = () => callback(Number(input.value) || 0);
+        contentArea.append(cE("div", { className: "row" }, card, input));
+    }
+
+    const tabs = {
+        "Global": () => {
+            contentArea.innerHTML = "<h2>Global Hacks</h2>";
+            addFunction("Auto-Answer (toggle)", toggleAuto).classList.toggle("on", !!autoTimer);
+            const row = cE("div", { className: "row" }, "Delay (ms):",
+                cE("input", { type: "number", value: autoDelay, oninput: e => { autoDelay = Number(e.target.value) || 0; } }));
+            contentArea.append(row);
+            addFunction("Highlight Correct Answer", highlight);
+            addFunction("Copy Correct Answer", () => {
+                const correct = getCorrectAnswers();
+                correct ? copyText(correct.join(", ")) : toast("No question found on this screen");
+            });
+            addFunction("Fade Wrong Answers", () => {
+                const correct = getCorrectAnswers();
+                if (!correct) return toast("No question found on this screen");
+                getAnswerButtons().forEach(b => {
+                    if (!correct.some(c => norm(b.innerText) === norm(c))) b.style.opacity = "0.15";
+                });
+            });
+            addFunction("Click Correct Answer Once", () => {
+                const correct = getCorrectAnswers();
+                if (!correct) return toast("No question found on this screen");
+                const btn = getAnswerButtons().find(b => correct.some(c => norm(b.innerText) === norm(c)));
+                btn ? btn.click() : toast("Answer button not found");
+            });
+            addFunction("Click a WRONG Answer (troll yourself)", () => {
+                const correct = getCorrectAnswers();
+                if (!correct) return toast("No question found on this screen");
+                const wrong = getAnswerButtons().filter(b => !correct.some(c => norm(b.innerText) === norm(c)));
+                wrong.length ? wrong[Math.floor(Math.random() * wrong.length)].click() : toast("No wrong buttons found");
+            });
+        },
+        "Game Modes": () => {
+            contentArea.innerHTML = "<h2>Game Specific</h2>";
+            addAmountFunction("Gold Quest: Set Gold", 1000000, cheats.addGold);
+            addAmountFunction("Crypto: Set Crypto + Password", 50000, cheats.cryptoHack);
+            addAmountFunction("Factory: Set Cash", 999999999, cheats.factoryCash);
+            contentArea.append(cE("p", { innerText: "Less certain (property names are guesses; use State Editor to confirm):", style: { fontSize: "12px", opacity: "0.8" } }));
+            addAmountFunction("Tower Defense: Set Health", 999999, n => setStateSafe({ health: n }, `Health set to ${n}`, "Join a Tower Defense game first!"));
+            addAmountFunction("Cafe: Set Cash", 1000000, n => setStateSafe({ cafeCash: n }, `Cafe cash set to ${n}`, "Join a Cafe game first!"));
+            addAmountFunction("Fishing Frenzy: Set Weight", 100000, n => setStateSafe({ weight: n, weight2: n }, `Weight set to ${n}`, "Join a Fishing Frenzy game first!"));
+            addAmountFunction("Crazy Kingdom: Set Crazy", 1000000, n => setStateSafe({ crazy: n }, `Crazy set to ${n}`, "Join a Crazy Kingdom game first!"));
+        },
+        "Troll": () => {
+            contentArea.innerHTML = "<h2>Troll (your screen)</h2><p style='font-size:12px;opacity:.8'>These affect your own screen, great for screenshares.</p>";
+            const toggle = (name, cls) => {
+                const card = addFunction(name, c => c.classList.toggle("on", root.classList.toggle(cls)));
+                card.classList.toggle("on", root.classList.contains(cls));
+            };
+            toggle("Rainbow Mode", "jod-rainbow");
+            toggle("Upside Down", "jod-flip");
+            toggle("Mirror Screen", "jod-mirror");
+            toggle("Earthquake", "jod-shake");
+            toggle("Comic Sans Everything", "jod-comic");
+            toggle("Blur Answers", "jod-blur");
+            toggle("Grayscale", "jod-gray");
+            toggle("Giant Mode (zoom)", "jod-big");
+            addFunction("Emoji Rain", () => emojiRain());
+            addFunction("Custom Emoji Rain...", () => {
+                const e = prompt("Which emojis?", "🐸🍕👻");
+                if (e) emojiRain(e, 6);
+            });
+            addFunction("Fake Disconnect Screen", () => overlay("<h1>⚠️ Connection lost</h1><p>Reconnecting... (click to dismiss)</p>"));
+            addFunction("Fake Ban Screen", () => overlay("<h1>🚫 You have been removed from the game</h1><p>(just kidding, click to dismiss)</p>"));
+            addFunction("Custom Fullscreen Message...", () => {
+                const msg = prompt("Message to show:", "Skill issue.");
+                if (msg) overlay(`<h1 style="font-size:48px;padding:20px">${msg.replace(/</g, "&lt;")}</h1><p>(click to dismiss)</p>`);
+            });
+            addFunction("Change Tab Title...", () => {
+                const t = prompt("New tab title:", "Definitely doing homework");
+                if (t) document.title = t;
+            });
+            addFunction("Reset All Effects", () => { clearAllFx(); tabs["Troll"](); toast("Effects cleared"); });
+        },
+        "State Editor": () => {
+            contentArea.innerHTML = "<h2>State Editor</h2><p style='font-size:12px;opacity:.8'>Click a value to change it. Only numbers, text and booleans are shown.</p>";
+            const node = getNode();
+            if (!node) { contentArea.append("No game state found. Join a game first."); return; }
+            addFunction("↻ Refresh", () => tabs["State Editor"]());
+            Object.entries(node.state).forEach(([k, v]) => {
+                const t = typeof v;
+                if (!["number", "string", "boolean"].includes(t)) return;
+                addFunction(`${k}: ${String(v).slice(0, 30)}`, () => {
+                    const raw = prompt(`New value for "${k}" (${t})`, v);
+                    if (raw === null) return;
+                    let val = raw;
+                    if (t === "number") { val = Number(raw); if (Number.isNaN(val)) return toast("Not a number"); }
+                    if (t === "boolean") val = raw.trim().toLowerCase() === "true";
+                    setStateSafe({ [k]: val }, `${k} updated`);
+                    setTimeout(() => tabs["State Editor"](), 150);
+                });
+            });
+        },
+        "Misc": () => {
+            contentArea.innerHTML = "<h2>Tools</h2>";
+            addFunction("Debug: log game state", () => {
+                console.log("Blooket node:", getNode());
+                toast("Logged to console (F12)");
+            });
+            addFunction("Menu Opacity: 50%", () => { gui.style.opacity = gui.style.opacity === "0.5" ? "1" : "0.5"; });
+            addFunction("Shrink / Grow Menu", () => {
+                const small = gui.style.width === "420px";
+                gui.style.width = small ? "600px" : "420px";
+                gui.style.height = small ? "400px" : "300px";
+            });
+            addFunction("Log All Answer Buttons", () => { console.log(getAnswerButtons().map(b => b.innerText)); toast("Logged to console (F12)"); });
+            addFunction("Log Correct Answer(s)", () => { console.log(getCorrectAnswers()); toast("Logged to console (F12)"); });
+            contentArea.append(cE("p", { innerText: "Tip: press Right Shift to hide/show this menu.", style: { fontSize: "12px", opacity: "0.8" } }));
+            addFunction("Close Menu", closeMenu);
+        }
+    };
+
+    Object.keys(tabs).forEach(name =>
+        sidebar.append(cE("div", { className: "tab-btn", innerText: name, onclick: () => tabs[name]() })));
+
+    tabs["Global"]();
+    document.body.appendChild(gui);
+})();
