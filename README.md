@@ -32,6 +32,10 @@ Here are some of the tools, technologies, and languages I work with:
 * **Tech Used:** JavaScript, CheatEngine.
 * **Links:** [🔗 Live Demo](https://github.com/LilBro24327/All-my-Cheats/blob/main/BETA-1-Blooket-cheats) | [💻 GitHub Repo](https://github.com/LilBro24327/All-my-Cheats)
 
+### 🌟 AI Assistant (Beta)
+* **Description:** An AI that is in the making.
+* **Tech Used:** JavaScript.
+* **Links:** [🔗 Live Demo](https://github.com/LilBro24327/All-my-Cheats/blob/main/AI) | [💻 GitHub Repo](https://github.com/LilBro24327/All-my-Cheats)
 
 ---
 
