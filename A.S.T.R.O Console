@@ -1,0 +1,223 @@
+// Paste Part 1 and press Enter
+(function() {
+  const oldRoot = document.getElementById('astro-console-root');
+  if (oldRoot) oldRoot.remove();
+
+  window.astroActiveLanguage = 'javascript';
+  window.astroRuntimes = {
+    javascript: function(code) {
+      try {
+        const originalLog = console.log;
+        let outputBuffer = [];
+        console.log = function(...args) {
+          outputBuffer.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+        };
+        const result = new Function(code)();
+        console.log = originalLog;
+        if (outputBuffer.length > 0) return outputBuffer.join('\n');
+        return result !== undefined ? '>>> Return: ' + result : '🚀 Script completed with no explicit return value.';
+      } catch (err) {
+        return '❌ JavaScript Error:\n' + err.message;
+      }
+    },
+    python: function(code) {
+      try {
+        let outputBuffer = [];
+        let localVariables = {};
+        const lines = code.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        if (lines.length === 0) return "🐍 Python Runtime: Empty Script Buffer.";
+
+        for (let line of lines) {
+          if (line.startsWith('#')) continue;
+          if (line.startsWith('print(') && line.endsWith(')')) {
+            let inner = line.substring(6, line.length - 1).trim();
+            if ((inner.startsWith('"') && inner.endsWith('"')) || (inner.startsWith("'") && inner.endsWith("'"))) {
+              outputBuffer.push(inner.substring(1, inner.length - 1));
+            } else {
+              try {
+                let safeExpression = inner;
+                for (let [vName, vVal] of Object.entries(localVariables)) {
+                  safeExpression = safeExpression.split(vName).join(vVal);
+                }
+                let evalMath = new Function('return (' + safeExpression + ')')();
+                outputBuffer.push(evalMath);
+              } catch {
+                if (localVariables[inner] !== undefined) {
+                  outputBuffer.push(localVariables[inner]);
+                } else {
+                  outputBuffer.push("NameError: name '" + inner + "' is not defined");
+                }
+              }
+            }
+            continue;
+          }
+          if (line.includes('=')) {
+            let parts = line.split('=');
+            let varName = parts[0].trim();
+            let varExpr = parts[1].trim();
+            for (let [vName, vVal] of Object.entries(localVariables)) {
+              varExpr = varExpr.split(vName).join(vVal);
+            }
+            try {
+              let resolvedVal = new Function('return (' + varExpr + ')')();
+              localVariables[varName] = resolvedVal;
+            } catch {
+              localVariables[varName] = varExpr.replace(/['"]/g, "");
+            }
+            continue;
+          }
+        }
+        if (outputBuffer.length > 0) return outputBuffer.join('\n');
+        return '🐍 Python script completed successfully.\nLocal Scope: ' + JSON.stringify(localVariables);
+      } catch (err) {
+        return '❌ Python Micro-Parser Error:\n' + err.message;
+      }
+    },
+    webframe: function(code) {
+      try {
+        const previewId = 'astro-live-web-preview';
+        let container = document.getElementById(previewId);
+        if (container) container.remove();
+
+        container = document.createElement('div');
+        container.id = previewId;
+        container.style.cssText = 'position:fixed;top:120px;right:40px;width:300px;height:250px;background:#fff;color:#000;border:2px solid #38bdf8;border-radius:8px;z-index:2147483646;overflow:auto;box-shadow:0 10px 25px rgba(0,0,0,0.5);padding:10px;';
+        container.innerHTML = '<div style="font-family:sans-serif;font-size:10px;color:#64748b;border-bottom:1px solid #ddd;padding-bottom:4px;margin-bottom:8px;display:flex;justify-content:space-between;"><span>🌐 LIVE WINDOW PREVIEW</span><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:red;cursor:pointer;">✕</button></div>' + code;
+        document.body.appendChild(container);
+        return "🌐 HTML/CSS block deployed successfully to side viewport engine!";
+      } catch (err) {
+        return '❌ HTML Compiler Error:\n' + err.message;
+      }
+    },
+    bash: function(code) {
+      const cmd = code.trim().toLowerCase();
+      if (cmd === 'help') return "🐚 Available Commands:\n• ls           - List DOM element layers\n• sysinfo      - Read browser data\n• scrapelinks  - Grab all page links";
+      if (cmd === 'ls') return '📁 DOM Tree Nodes:\n• Title: ' + document.title + '\n• Div Elements: ' + document.getElementsByTagName('div').length + '\n• Links: ' + document.getElementsByTagName('a').length;
+      if (cmd === 'sysinfo') return '🖥️ Environment Profile:\n• Runtime: Browser Window Tab\n• Client: ' + navigator.userAgent;
+      if (cmd === 'scrapelinks') {
+        const elements = Array.from(document.querySelectorAll('a')).map(a => a.href).filter(h => h.startsWith('http')).slice(0, 10);
+        return '🔗 Scraped Links:\n' + (elements.length > 0 ? elements.join('\n') : 'No absolute HTTP links identified.');
+      }
+      return "🐚 bash: command not found: '" + code + "'. Type 'help' for options.";
+    }
+  };
+  console.log("⚙️ Part 1 Engine initialized successfully!");
+// Paste Part 2 right after and press Enter
+(function() {
+  const root = document.createElement('div');
+  root.id = 'astro-console-root';
+  root.style.cssText = 'position:fixed;top:80px;left:80px;width:680px;height:520px;background:#0b0c14;color:#f1f5f9;border-radius:12px;box-shadow:0 30px 70px rgba(0,0,0,0.8);font-family:monospace;display:flex;flex-direction:column;z-index:2147483647;border:1px solid #1f2235;overflow:hidden;box-sizing:border-box;transition:width 0.2s, height 0.2s;';
+
+  root.innerHTML = `
+    <div id="astro-drag-bar" style="background:#121420;padding:14px 18px;border-bottom:1px solid #1f2235;display:flex;justify-content:space-between;align-items:center;cursor:move;user-select:none;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-weight:800;font-size:11px;letter-spacing:2px;color:#38bdf8;">🛰️ A.S.T.R.O // CONSOLE v3.0</span>
+        <span id="astro-status" style="font-size:10px;background:rgba(56,189,248,0.1);color:#38bdf8;padding:2px 6px;border-radius:4px;border:1px solid rgba(56,189,248,0.2);">JS_ENGINE</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button id="astro-maximize" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12px;">⬜</button>
+        <button id="astro-close" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;">✕</button>
+      </div>
+    </div>
+    <div style="background:#08090f;padding:10px 18px;border-bottom:1px solid #1f2235;display:flex;gap:8px;align-items:center;">
+      <button class="astro-lang-btn active" data-lang="javascript" style="background:#38bdf8;color:#000;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">JS</button>
+      <button class="astro-lang-btn" data-lang="python" style="background:#1e293b;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">Python</button>
+      <button class="astro-lang-btn" data-lang="webframe" style="background:#1e293b;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">HTML</button>
+      <button class="astro-lang-btn" data-lang="bash" style="background:#1e293b;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">Bash</button>
+      <div style="flex-grow:1;"></div>
+      <button id="astro-clear-panels" style="background:none;border:1px solid #2d3149;color:#64748b;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;">Clear</button>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;background:#040406;">
+      <textarea id="astro-code-input" spellcheck="false" style="flex:1;width:100%;background:transparent;color:#00ff88;border:none;outline:none;padding:16px;resize:none;box-sizing:border-box;font-family:monospace;font-size:13px;line-height:1.6;"></textarea>
+      <pre id="astro-console-output" style="flex:1;margin:0;padding:16px;background:#020203;border-top:1px solid #141622;overflow-y:auto;white-space:pre-wrap;word-break:break-all;font-size:12px;color:#cbd5e1;line-height:1.6;">✨ Sandbox Workspace Online. Drag title bar to move panel window.</pre>
+    </div>
+    <div style="background:#08090f;padding:12px 18px;border-top:1px solid #1f2235;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:10px;color:#475569;">Press Ctrl + Enter to run scripts</span>
+      <button id="astro-exec-trigger" style="background:#10b981;color:white;border:none;padding:8px 24px;border-radius:6px;font-weight:bold;font-size:12px;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.2);">RUN CODE ⚡</button>
+    </div>
+  `;
+
+  document.body.appendChild(root);
+
+  const inputArea = document.getElementById('astro-code-input');
+  const outputScreen = document.getElementById('astro-console-output');
+  const runBtn = document.getElementById('astro-exec-trigger');
+  const closeBtn = document.getElementById('astro-close');
+  const maxBtn = document.getElementById('astro-maximize');
+  const clearBtn = document.getElementById('astro-clear-panels');
+  const statusLabel = document.getElementById('astro-status');
+  const langButtons = document.querySelectorAll('.astro-lang-btn');
+
+  const boilerplates = {
+    javascript: 'console.log("Hello from Javascript environment!");\nreturn 50 * 50;',
+    python: '# Native sandbox python logic\nx = 12\ny = 8\nprint("Executing python offline:")\nprint(x * y)',
+    webframe: '<!-- HTML Content -->\n<div style="background:#1e293b;color:#38bdf8;padding:20px;border-radius:6px;text-align:center;">\n  <h1>A.S.T.R.O Live Node</h1>\n</div>',
+    bash: 'help'
+  };
+
+  langButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      langButtons.forEach(b => { b.style.background = '#1e293b'; b.style.color = '#94a3b8'; });
+      btn.style.background = '#38bdf8'; btn.style.color = '#000';
+      window.astroActiveLanguage = btn.getAttribute('data-lang');
+      statusLabel.innerText = window.astroActiveLanguage.toUpperCase() + "_ENGINE";
+      inputArea.value = boilerplates[window.astroActiveLanguage];
+    });
+  });
+
+  function compileAndExecute() {
+    const rawPayload = inputArea.value;
+    if (!rawPayload.trim()) return;
+    outputScreen.innerText = window.astroRuntimes[window.astroActiveLanguage](rawPayload);
+  }
+
+  let isMaximized = false;
+  maxBtn.addEventListener('click', () => {
+    isMaximized = !isMaximized;
+    if (isMaximized) {
+      root.style.top = '0px'; root.style.left = '0px';
+      root.style.width = '100vw'; root.style.height = '100vh';
+    } else {
+      root.style.top = '80px'; root.style.left = '80px';
+      root.style.width = '680px'; root.style.height = '520px';
+    }
+  });
+
+  runBtn.addEventListener('click', compileAndExecute);
+  inputArea.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      compileAndExecute();
+    }
+  });
+
+  clearBtn.addEventListener('click', () => { outputScreen.innerText = '⚙️ Terminal monitor cleared.'; });
+  closeBtn.addEventListener('click', () => {
+    const preview = document.getElementById('astro-live-web-preview');
+    if (preview) preview.remove();
+    root.remove();
+  });
+
+  const dragBar = document.getElementById('astro-drag-bar');
+  let draggingActive = false, originX, originY;
+  
+  dragBar.addEventListener('mousedown', (e) => {
+    if(e.target.tagName === 'BUTTON' || isMaximized) return;
+    draggingActive = true;
+    originX = e.clientX - root.offsetLeft;
+    originY = e.clientY - root.offsetTop;
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (draggingActive && !isMaximized) {
+      root.style.left = (e.clientX - originX) + 'px';
+      root.style.top = (e.clientY - originY) + 'px';
+    }
+  });
+  
+  document.addEventListener('mouseup', () => { draggingActive = false; });
+  inputArea.value = boilerplates.javascript;
+  console.log("🚀 Part 2 UI interface frame fully attached!");
+})();
+
+})();
