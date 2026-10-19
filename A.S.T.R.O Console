@@ -1,4 +1,4 @@
-// Paste Part 1 and press Enter
+// Paste Into Console and Enjoy A.S.T.R.O.
 (function() {
   const oldRoot = document.getElementById('astro-console-root');
   if (oldRoot) oldRoot.remove();
