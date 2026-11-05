@@ -1,18 +1,18 @@
-alert("This is in beta testing");
-alert("This is made by Dillon");
-alert("Welcome to Artic 1.0 AI Lockdown browser");
+alert("Welcome to Nova!");
+alert("I did not make this website, i just found it.");
+alert("Welcome to Nova OS - Browser and Desktop App.");
 
 // 1. Ask for the code
 const password = prompt("Enter the access code:");
 
 // 2. Check if the code is correct
-if (password === "19x23vb") {
+if (password === "Nova1626") {
     const userConfirmed = confirm("Are you sure you want to do this?");
     
     if (userConfirmed) {
         console.log("User clicked OK. Proceeding...");
         // This will redirect the user to the website
-        window.location.href = "https://classlinklogin.speedinsure.hk/mastery?auth=a54t4f0";
+        window.location.href = "https://cosmos-desktop-suite.lovable.app/";
     } else {
         console.log("User backed out.");
     }
