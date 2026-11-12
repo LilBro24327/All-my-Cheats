@@ -1,0 +1,249 @@
+(function() {
+    // Prevent duplicate menus if pasted twice
+    if (document.getElementById('whopper-bot-menu')) {
+        document.getElementById('whopper-bot-menu').remove();
+    }
+
+    function findScratchVM() {
+        const root = document.querySelector('#app') || document.body;
+        const reactKey = Object.keys(root).find(k => k.startsWith('__reactContainer') || k.startsWith('__reactInternalInstance'));
+        if (!reactKey) return null;
+
+        const visited = new Set();
+        const stack = [root[reactKey]];
+
+        while (stack.length > 0) {
+            const fiber = stack.pop();
+            if (!fiber || visited.has(fiber)) continue;
+            visited.add(fiber);
+
+            const vm = fiber.stateNode?.props?.vm || fiber.memoizedProps?.vm || fiber.pendingProps?.vm;
+            if (vm && vm.runtime && vm.runtime.ioDevices) {
+                return vm;
+            }
+
+            if (fiber.child) stack.push(fiber.child);
+            if (fiber.sibling) stack.push(fiber.sibling);
+        }
+        return null;
+    }
+
+    const vm = findScratchVM();
+    if (!vm) {
+        alert("❌ Could not find Scratch VM! Make sure the project has finished loading first.");
+        return;
+    }
+
+    const canvas = document.querySelector('canvas');
+    let isRunning = false;
+    let isWaitingForLock = false;
+    let lockedPos = null;
+    let targetSprite = null;
+    let clicksPerTick = 50;
+
+    // --- BUILD FLOATING UI MENU ---
+    const menu = document.createElement('div');
+    menu.id = 'whopper-bot-menu';
+    Object.assign(menu.style, {
+        position: 'fixed',
+        top: '80px',
+        right: '20px',
+        width: '250px',
+        backgroundColor: '#18181b',
+        color: '#f4f4f5',
+        border: '1px solid #3f3f46',
+        borderRadius: '10px',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        fontSize: '13px',
+        zIndex: '999999',
+        userSelect: 'none',
+        overflow: 'hidden'
+    });
+
+    menu.innerHTML = `
+        <div id="wb-header" style="background:#27272a; padding:10px 12px; cursor:grab; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #3f3f46;">
+            <span style="font-weight:700; color:#fb923c;">🍔 Whopper Bot</span>
+            <button id="wb-close" style="background:none; border:none; color:#a1a1aa; font-size:16px; cursor:pointer; line-height:1;">&times;</button>
+        </div>
+        <div style="padding:12px; display:flex; flex-direction:column; gap:10px;">
+            <div id="wb-status" style="background:#27272a; padding:6px 8px; border-radius:6px; font-size:12px; color:#a1a1aa; text-align:center;">
+                Status: <strong style="color:#facc15;">Not Locked</strong>
+            </div>
+
+            <button id="wb-lock-btn" style="background:#2563eb; color:white; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:pointer;">
+                🎯 Pick Target (or press L)
+            </button>
+
+            <button id="wb-toggle-btn" disabled style="background:#3f3f46; color:#71717a; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:not-allowed;">
+                ▶️ Start Clicking (S)
+            </button>
+
+            <div style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">
+                <div style="display:flex; justify-content:space-between; font-size:12px;">
+                    <span>Burst Speed:</span>
+                    <strong id="wb-speed-val" style="color:#fb923c;">50x</strong>
+                </div>
+                <input id="wb-speed-slider" type="range" min="1" max="250" value="50" style="width:100%; accent-color:#fb923c; cursor:pointer;">
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(menu);
+
+    // UI References
+    const header = document.getElementById('wb-header');
+    const closeBtn = document.getElementById('wb-close');
+    const statusText = document.getElementById('wb-status');
+    const lockBtn = document.getElementById('wb-lock-btn');
+    const toggleBtn = document.getElementById('wb-toggle-btn');
+    const speedSlider = document.getElementById('wb-speed-slider');
+    const speedVal = document.getElementById('wb-speed-val');
+
+    // --- DRAGGABLE WINDOW LOGIC ---
+    let isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
+    header.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        dragOffsetX = e.clientX - menu.offsetLeft;
+        dragOffsetY = e.clientY - menu.offsetTop;
+        header.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        menu.style.left = (e.clientX - dragOffsetX) + 'px';
+        menu.style.top = (e.clientY - dragOffsetY) + 'px';
+        menu.style.right = 'auto';
+    });
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+        header.style.cursor = 'grab';
+    });
+
+    // --- HELPER FUNCTIONS ---
+    function updateUI() {
+        if (!lockedPos) {
+            toggleBtn.disabled = true;
+            toggleBtn.style.background = '#3f3f46';
+            toggleBtn.style.color = '#71717a';
+            toggleBtn.style.cursor = 'not-allowed';
+            toggleBtn.textContent = '▶️ Start Clicking (S)';
+            return;
+        }
+
+        toggleBtn.disabled = false;
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.color = 'white';
+
+        if (isRunning) {
+            toggleBtn.style.background = '#dc2626';
+            toggleBtn.textContent = '⏸️ Pause Clicking (S)';
+            const label = targetSprite ? targetSprite.getName() : 'Coordinates';
+            statusText.innerHTML = `Active: <strong style="color:#4ade80;">${label}</strong>`;
+        } else {
+            toggleBtn.style.background = '#16a34a';
+            toggleBtn.textContent = '▶️ Resume Clicking (S)';
+            statusText.innerHTML = `Status: <strong style="color:#facc15;">Paused</strong>`;
+        }
+    }
+
+    function lockAtClientCoords(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        lockedPos = {
+            x: clientX - rect.left,
+            y: clientY - rect.top,
+            canvasWidth: rect.width,
+            canvasHeight: rect.height
+        };
+
+        const mouse = vm.runtime.ioDevices.mouse;
+        mouse.postData({
+            x: lockedPos.x,
+            y: lockedPos.y,
+            canvasWidth: lockedPos.canvasWidth,
+            canvasHeight: lockedPos.canvasHeight,
+            isDown: true
+        });
+
+        const scratchX = mouse.getScratchX();
+        const scratchY = mouse.getScratchY();
+        targetSprite = vm.runtime.targets.find(t => t.visible && !t.isStage && t.isTouchingPoint(scratchX, scratchY));
+
+        isWaitingForLock = false;
+        isRunning = true;
+        lockBtn.style.background = '#2563eb';
+        lockBtn.textContent = '🎯 Re-Pick Target (L)';
+        updateUI();
+    }
+
+    // --- BUTTON & SLIDER EVENTS ---
+    lockBtn.addEventListener('click', () => {
+        isWaitingForLock = true;
+        isRunning = false;
+        lockBtn.style.background = '#d97706';
+        lockBtn.textContent = '👆 Click the Whopper now...';
+        statusText.innerHTML = `Status: <strong style="color:#fb923c;">Click target on game</strong>`;
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+        if (isWaitingForLock) {
+            lockAtClientCoords(e.clientX, e.clientY);
+        }
+    }, true);
+
+    toggleBtn.addEventListener('click', () => {
+        if (!lockedPos) return;
+        isRunning = !isRunning;
+        updateUI();
+    });
+
+    speedSlider.addEventListener('input', (e) => {
+        clicksPerTick = parseInt(e.target.value, 10);
+        speedVal.textContent = `${clicksPerTick}x`;
+    });
+
+    // Track hover position so 'L' hotkey still works anytime
+    let lastMouse = { x: 0, y: 0 };
+    window.addEventListener('mousemove', (e) => {
+        lastMouse = { x: e.clientX, y: e.clientY };
+    });
+
+    const keyHandler = (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 'l') {
+            lockAtClientCoords(lastMouse.x, lastMouse.y);
+        }
+        if (key === 's' && lockedPos) {
+            isRunning = !isRunning;
+            updateUI();
+        }
+    };
+    window.addEventListener('keydown', keyHandler);
+
+    // --- MAIN CLICKING LOOP ---
+    let toggle = false;
+    const loopInterval = setInterval(() => {
+        if (!isRunning || !lockedPos) return;
+
+        if (targetSprite) {
+            for (let i = 0; i < clicksPerTick; i++) {
+                vm.runtime.startHats('event_whenthisspriteclicked', null, targetSprite);
+            }
+        }
+
+        toggle = !toggle;
+        vm.runtime.ioDevices.mouse.postData({
+            x: lockedPos.x,
+            y: lockedPos.y,
+            canvasWidth: lockedPos.canvasWidth,
+            canvasHeight: lockedPos.canvasHeight,
+            isDown: toggle
+        });
+    }, 10);
+
+    // Clean up everything when clicking the 'X' close button
+    closeBtn.addEventListener('click', () => {
+        clearInterval(loopInterval);
+        window.removeEventListener('keydown', keyHandler);
+        menu.remove();
+    });
+})();
