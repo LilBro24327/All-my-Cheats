@@ -1,0 +1,88 @@
+(() => {
+  if (window._wbC) window._wbC();
+  const r = document.querySelector('#app') || document.body;
+  const rk = Object.keys(r).find(k => k.startsWith('__reactContainer') || k.startsWith('__reactInternalInstance'));
+  let vm = null;
+  if (rk) {
+    const s = new Set(), q = new Array(Reflect.get(r, rk));
+    while (q.length) {
+      const f = q.pop();
+      if (!f || s.has(f)) continue;
+      s.add(f);
+      const c = f.stateNode?.props?.vm || f.memoizedProps?.vm || f.pendingProps?.vm;
+      if (c?.runtime?.ioDevices) { vm = c; break; }
+      if (f.child) q.push(f.child);
+      if (f.sibling) q.push(f.sibling);
+    }
+  }
+  const cv = document.querySelector('canvas');
+  if (!vm || !cv) return alert('❌ Scratch VM or Canvas not found!');
+  window._wbVM = vm;
+  window._wbCV = cv;
+})();(() => {
+  const vm = window._wbVM, cv = window._wbCV;
+  if (!vm || !cv) return;
+  const mk = (tag, css, props) => { const el = document.createElement(tag); if (css) el.style.cssText = css; if (props) Object.assign(el, props); return el; };
+  const m = mk('div', 'position:fixed;top:70px;right:20px;width:270px;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:10px;box-shadow:0 10px 25px #0009;font:13px system-ui,sans-serif;z-index:999999;overflow:hidden', { id: 'whopper-bot-menu' });
+  const hd = mk('div', 'background:#27272a;padding:9px 12px;cursor:grab;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #3f3f46;user-select:none');
+  const title = mk('b', 'color:#fb923c', { textContent: '🍔 Whopper Bot v2.3' });
+  const closeBtn = mk('button', 'background:none;border:none;color:#a1a1aa;font-size:16px;cursor:pointer', { textContent: '×' });
+  hd.append(title, closeBtn);
+  const body = mk('div', 'padding:10px;display:flex;flex-direction:column;gap:8px');
+  const st = mk('div', 'background:#27272a;padding:6px;border-radius:6px;font-size:12px;color:#facc15;text-align:center;font-weight:bold', { textContent: 'Status: Not Locked' });
+  const stats = mk('div', 'display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#27272a;padding:6px;border-radius:6px;text-align:center');
+  const mkStat = (lbl, col) => { const box = mk('div'), l = mk('div', 'font-size:10px;color:#a1a1aa', { textContent: lbl }), v = mk('b', 'font-size:12px;color:' + col, { textContent: lbl === 'CLOCK' ? '00:00:00' : '0' }); box.append(l, v); stats.appendChild(box); return v; };
+  const ck = mkStat('CLOCK', '#38bdf8'), cp = mkStat('CPS', '#4ade80'), tt = mkStat('TOTAL', '#fb923c');
+  const row1 = mk('div', 'display:flex;gap:6px');
+  const lk = mk('button', 'flex:1;background:#2563eb;color:#fff;border:none;padding:8px;border-radius:6px;font-weight:600;cursor:pointer', { textContent: '🎯 Pick Target (L)' });
+  const rst = mk('button', 'background:#27272a;color:#a1a1aa;border:1px solid #3f3f46;padding:0 10px;border-radius:6px;cursor:pointer', { textContent: '↺' });
+  row1.append(lk, rst);
+  const tg = mk('button', 'background:#3f3f46;color:#71717a;border:none;padding:8px;border-radius:6px;font-weight:600;cursor:not-allowed', { textContent: '▶️ Start Clicking (S)', disabled: true });
+  const amtBox = mk('div', 'background:#27272a;padding:8px;border-radius:6px;display:flex;flex-direction:column;gap:5px');
+  const amtLbl = mk('span', 'font-size:11px;color:#a1a1aa;font-weight:600', { textContent: 'SET WHOPPER AMOUNT' });
+  const amtRow = mk('div', 'display:flex;gap:5px');
+  const amtIn = mk('input', 'flex:1;min-width:0;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:4px;padding:5px 7px;font-size:12px', { type: 'text', placeholder: 'MAKE AMOUNT' });
+  const amtBtn = mk('button', 'background:#ea580c;color:#fff;border:none;padding:5px 10px;border-radius:4px;font-weight:600;font-size:11px;cursor:pointer', { textContent: 'ENTER' });
+  amtRow.append(amtIn, amtBtn); amtBox.append(amtLbl, amtRow);
+  const spdBox = mk('div', 'background:#27272a;padding:8px;border-radius:6px;display:flex;flex-direction:column;gap:5px');
+  const spdTop = mk('div', 'display:flex;justify-content:space-between;font-size:12px');
+  const sv = mk('b', 'color:#fb923c', { textContent: '250x' });
+  spdTop.append(mk('span', '', { textContent: 'Burst Speed:' }), sv);
+  const sl = mk('input', 'width:100%;accent-color:#fb923c;cursor:pointer', { type: 'range', min: 1, max: 125000, value: 250 });
+  const presets = mk('div', 'display:grid;grid-template-columns:repeat(4,1fr);gap:4px');
+  spdBox.append(spdTop, sl, presets);
+  const stopBox = mk('div', 'display:flex;justify-content:space-between;align-items:center;font-size:12px;background:#27272a;padding:6px 8px;border-radius:6px');
+  const tm = mk('input', 'width:60px;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:4px;padding:3px;text-align:right', { type: 'number', min: 0, max: 86400, value: 0 });
+  stopBox.append(mk('span', 'color:#a1a1aa', { textContent: 'Auto-Stop (sec):' }), tm);
+  body.append(st, stats, row1, tg, amtBox, spdBox, stopBox); m.append(hd, body); document.body.appendChild(m);
+  window._wbUI = { m, hd, closeBtn, st, ck, cp, tt, lk, rst, tg, amtIn, amtBtn, sv, sl, presets, tm, mk };
+})();
+(() => {
+  const vm = window._wbVM, cv = window._wbCV, u = window._wbUI;
+  if (!vm || !cv || !u) return;
+  let run = 0, wait = 0, pos = null, spr = null, spd = 250, tot = 0, ms = 0, lt = null, cpsN = 0, stopS = 0, tog = 0, drg = 0, dx = 0, dy = 0, lm = { x: 0, y: 0 };
+  const fN = n => n >= 1e9 ? (n/1e9).toFixed(2)+'B' : n >= 1e6 ? (n/1e6).toFixed(2)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : String(n);
+  const fT = t => { const s = Math.floor(t/1e3); return new Array(Math.floor(s/3600), Math.floor((s%3600)/60), s%60).map(v => String(v).padStart(2,'0')).join(':'); };
+  const getC = () => { const b = cv.getBoundingClientRect(); return { x: pos.x * b.width, y: pos.y * b.height, canvasWidth: b.width, canvasHeight: b.height }; };
+  const setS = v => { spd = Math.max(1, Math.min(125000, +v || 1)); u.sl.value = spd; u.sv.textContent = spd.toLocaleString() + 'x'; };
+  new Array(250, 10000, 50000, 125000).forEach(v => { const b = u.mk('button', 'background:#3f3f46;color:' + (v === 125000 ? '#fb923c' : '#e4e4e7') + ';border:none;padding:4px;border-radius:4px;font-size:11px;cursor:pointer', { textContent: v >= 1e3 ? v/1e3 + 'k' : v + 'x' }); b.onclick = () => setS(v); u.presets.appendChild(b); });
+  const ui = () => { if (!pos) return; u.tg.disabled = false; u.tg.style.cursor = 'pointer'; u.tg.style.color = '#fff'; u.tg.style.background = run ? '#dc2626' : '#16a34a'; u.tg.textContent = run ? '⏸️ Pause Clicking (S)' : '▶️ Resume Clicking (S)'; u.st.style.color = run ? '#4ade80' : '#facc15'; u.st.textContent = run ? 'Active: ' + (spr ? spr.getName() : 'Coords') : 'Status: Paused'; };
+  const setR = v => { run = v; lt = run ? performance.now() : null; if (!run) { cpsN = 0; u.cp.textContent = '0'; } ui(); };
+  const lock = (cx, cy) => { const b = cv.getBoundingClientRect(), rx = cx - b.left, ry = cy - b.top; wait = 0; u.lk.style.background = '#2563eb'; u.lk.textContent = pos ? '🎯 Re-Pick Target (L)' : '🎯 Pick Target (L)'; if (rx < 0 || ry < 0 || rx > b.width || ry > b.height) return ui(); pos = { x: rx / b.width, y: ry / b.height }; const io = vm.runtime.ioDevices.mouse; io.postData({ ...getC(), isDown: false }); const sx = io.getScratchX(), sy = io.getScratchY(); spr = Array.from(vm.runtime.targets).reverse().find(t => t.visible && !t.isStage && t.isTouchingPoint(sx, sy)) || null; u.lk.textContent = '🎯 Re-Pick Target (L)'; setR(1); };
+  const setAmt = () => { const raw = u.amtIn.value.trim(); if (!raw || isNaN(Number(raw))) { u.st.style.color = '#f87171'; u.st.textContent = 'Enter a valid number!'; return; } const num = Number(raw); let hit = 0; const keys = new Array('whopper', 'click', 'score', 'burger', 'point', 'count', 'money', 'cash', '$'); const allNums = new Array(); for (const t of vm.runtime.targets) { for (const vr of Object.values(t.variables)) { if (vr && vr.type === '' && !vr.name.toLowerCase().includes('per')) { if (keys.some(k => vr.name.toLowerCase().includes(k))) { vr.value = num; hit++; } else if (!isNaN(Number(vr.value))) allNums.push({ vr: vr, val: Number(vr.value) }); } } } if (!hit && allNums.length) { allNums.sort((a, b) => b.val - a.val); allNums.at(0).vr.value = num; hit++; } tot = num; u.tt.textContent = fN(tot); u.st.style.color = hit ? '#4ade80' : '#f87171'; u.st.textContent = hit ? 'Set to ' + fN(num) : 'No variable found'; };
+  u.amtIn.onmousedown = e => e.stopPropagation(); u.amtIn.onclick = e => { e.stopPropagation(); u.amtIn.focus(); }; u.amtIn.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') setAmt(); }; u.amtBtn.onmousedown = e => e.stopPropagation(); u.amtBtn.onclick = e => { e.stopPropagation(); setAmt(); };
+  const oD = e => { if (e.target !== u.closeBtn) { drg = 1; dx = e.clientX - u.m.offsetLeft; dy = e.clientY - u.m.offsetTop; u.hd.style.cursor = 'grabbing'; } };
+  const oM = e => { lm = { x: e.clientX, y: e.clientY }; if (drg) { u.m.style.left = (e.clientX - dx) + 'px'; u.m.style.top = (e.clientY - dy) + 'px'; u.m.style.right = 'auto'; } };
+  const oU = () => { drg = 0; u.hd.style.cursor = 'grab'; };
+  const oC = e => { if (wait) { e.stopPropagation(); e.preventDefault(); lock(e.clientX, e.clientY); } };
+  const oK = e => { if (document.activeElement !== u.amtIn && document.activeElement !== u.tm) { const k = e.key.toLowerCase(); if (k === 'l') lock(lm.x, lm.y); if (k === 's' && pos) setR(!run); } };
+  u.hd.onmousedown = oD; window.addEventListener('mousemove', oM); window.addEventListener('mouseup', oU); cv.addEventListener('mousedown', oC, 1); window.addEventListener('keydown', oK);
+  u.lk.onclick = () => { wait = 1; setR(0); u.lk.style.background = '#d97706'; u.lk.textContent = '👆 Click target now...'; u.st.style.color = '#fb923c'; u.st.textContent = 'Status: Click target on game'; };
+  u.tg.onclick = () => pos && setR(!run); u.sl.oninput = e => setS(e.target.value); u.tm.onchange = e => { stopS = Math.max(0, +e.target.value || 0); e.target.value = stopS; };
+  u.rst.onclick = () => { tot = ms = cpsN = 0; lt = run ? performance.now() : null; u.ck.textContent = '00:00:00'; u.cp.textContent = u.tt.textContent = '0'; };
+  const i1 = setInterval(() => { if (!run || !pos) return; const now = performance.now(); if (lt !== null) ms += now - lt; lt = now; if (stopS > 0 && ms >= stopS * 1e3) { ms = stopS * 1e3; u.ck.textContent = fT(ms); setR(0); u.st.style.color = '#38bdf8'; u.st.textContent = 'Status: Timer Finished!'; return; } if (spr && !vm.runtime.targets.includes(spr)) spr = null; let f = 0; if (spr) { const end = now + 8; for (let i = 0; i < spd; i++) { vm.runtime.startHats('event_whenthisspriteclicked', null, spr); f++; if ((i & 63) === 63 && performance.now() > end) break; } } else f = 1; tot += f; cpsN += f; tog = !tog; vm.runtime.ioDevices.mouse.postData({ ...getC(), isDown: !!tog }); }, 10);
+  const i2 = setInterval(() => { if (run) { u.ck.textContent = fT(ms); u.cp.textContent = fN(cpsN * 4); cpsN = 0; u.tt.textContent = fN(tot); } }, 250);
+  window._wbC = () => { run = 0; clearInterval(i1); clearInterval(i2); window.removeEventListener('mousemove', oM); window.removeEventListener('mouseup', oU); window.removeEventListener('keydown', oK); cv.removeEventListener('mousedown', oC, 1); u.m.remove(); delete window._wbC; delete window._wbVM; delete window._wbCV; delete window._wbUI; };
+  u.closeBtn.onclick = window._wbC;
+})();
+
