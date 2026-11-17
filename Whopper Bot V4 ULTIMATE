@@ -1,0 +1,122 @@
+(() => {
+  if (window._wbC) window._wbC();
+  const r = document.querySelector('#app') || document.body;
+  const rk = Object.keys(r).find(k => k.startsWith('__reactContainer') || k.startsWith('__reactInternalInstance'));
+  let vm = null;
+  if (rk) {
+    const s = new Set(), q = new Array(Reflect.get(r, rk));
+    while (q.length) {
+      const f = q.pop();
+      if (!f || s.has(f)) continue;
+      s.add(f);
+      const c = f.stateNode?.props?.vm || f.memoizedProps?.vm || f.pendingProps?.vm;
+      if (c?.runtime?.ioDevices) { vm = c; break; }
+      if (f.child) q.push(f.child);
+      if (f.sibling) q.push(f.sibling);
+    }
+  }
+  const cv = document.querySelector('canvas');
+  if (!vm || !cv) return alert('❌ Scratch VM or Canvas not found!');
+  window._wbVM = vm;
+  window._wbCV = cv;
+})();(() => {
+  const vm = window._wbVM, cv = window._wbCV;
+  if (!vm || !cv) return;
+  const mk = (tag, css, props) => { const el = document.createElement(tag); if (css) el.style.cssText = css; if (props) Object.assign(el, props); return el; };
+  const m = mk('div', 'position:fixed;top:60px;right:20px;width:295px;background:#18181b;color:#f4f4f5;border:1px solid #f97316;border-radius:10px;box-shadow:0 14px 35px #000c;font:13px system-ui,sans-serif;z-index:999999;overflow:hidden', { id: 'whopper-bot-menu' });
+  const hd = mk('div', 'background:linear-gradient(90deg,#27272a,#3f1d0b);padding:9px 12px;cursor:grab;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #3f3f46;user-select:none');
+  const title = mk('b', 'color:#fb923c;letter-spacing:0.4px;font-size:13px', { textContent: '👑 Whopper Bot v4.5 ULTIMATE' });
+  const hdBtns = mk('div', 'display:flex;gap:8px;align-items:center');
+  const minBtn = mk('button', 'background:none;border:none;color:#a1a1aa;font-size:15px;cursor:pointer;line-height:1', { textContent: '—' });
+  const closeBtn = mk('button', 'background:none;border:none;color:#a1a1aa;font-size:17px;cursor:pointer;line-height:1', { textContent: '×' });
+  hdBtns.append(minBtn, closeBtn); hd.append(title, hdBtns);
+  const body = mk('div', 'padding:10px;display:flex;flex-direction:column;gap:7px');
+  const st = mk('div', 'background:#27272a;padding:6px;border-radius:6px;font-size:11px;color:#facc15;text-align:center;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis', { textContent: 'Status: Ready (Hover & press L)' });
+  const stats = mk('div', 'display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#27272a;padding:6px;border-radius:6px;text-align:center');
+  const mkStat = (lbl, col) => { const box = mk('div'), l = mk('div', 'font-size:10px;color:#a1a1aa', { textContent: lbl }), v = mk('b', 'font-size:12px;color:' + col, { textContent: lbl === 'CLOCK' ? '00:00:00' : '0' }); box.append(l, v); stats.appendChild(box); return v; };
+  const ck = mkStat('CLOCK', '#38bdf8'), cp = mkStat('CPS', '#4ade80'), tt = mkStat('TOTAL', '#fb923c');
+  const row1 = mk('div', 'display:flex;gap:4px');
+  const lk = mk('button', 'flex:1;background:#2563eb;color:#fff;border:none;padding:7px 6px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer', { textContent: '🎯 Main (L)' });
+  const lkUpg = mk('button', 'background:#27272a;color:#e4e4e7;border:1px solid #3f3f46;padding:7px 7px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer', { textContent: '⚡ +Upg (U)' });
+  const clrUpg = mk('button', 'background:#27272a;color:#f87171;border:1px solid #3f3f46;padding:7px 7px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;display:none', { textContent: '✕0' });
+  const rst = mk('button', 'background:#27272a;color:#a1a1aa;border:1px solid #3f3f46;padding:0 8px;border-radius:6px;cursor:pointer', { textContent: '↺' });
+  row1.append(lk, lkUpg, clrUpg, rst);
+  const tg = mk('button', 'background:#3f3f46;color:#71717a;border:none;padding:8px;border-radius:6px;font-weight:600;cursor:not-allowed', { textContent: '▶️ Start Clicking (S)', disabled: true });
+  const amtBox = mk('div', 'background:#27272a;padding:7px;border-radius:6px;display:flex;flex-direction:column;gap:5px');
+  const amtTop = mk('div', 'display:flex;justify-content:space-between;align-items:center');
+  const amtLbl = mk('span', 'font-size:10px;color:#a1a1aa;font-weight:700', { textContent: 'VARIABLE INJECTOR & FREEZE' });
+  const scanBtn = mk('button', 'background:none;border:none;color:#38bdf8;font-size:11px;cursor:pointer;padding:0', { textContent: '↻ Scan' });
+  amtTop.append(amtLbl, scanBtn);
+  const varSel = mk('select', 'width:100%;background:#18181b;color:#e4e4e7;border:1px solid #3f3f46;border-radius:4px;padding:4px 6px;font-size:11px');
+  const amtRow = mk('div', 'display:flex;gap:4px');
+  const amtIn = mk('input', 'flex:1;min-width:0;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:4px;padding:5px 7px;font-size:12px', { type: 'text', placeholder: 'e.g. 999T, 1e18' });
+  const amtBtn = mk('button', 'background:#ea580c;color:#fff;border:none;padding:5px 9px;border-radius:4px;font-weight:600;font-size:11px;cursor:pointer', { textContent: 'SET' });
+  const frzBtn = mk('button', 'background:#18181b;color:#a1a1aa;border:1px solid #3f3f46;padding:5px 8px;border-radius:4px;font-size:11px;cursor:pointer', { textContent: '🔓', title: 'Freeze/Lock Variable Value' });
+  amtRow.append(amtIn, amtBtn, frzBtn); amtBox.append(amtTop, varSel, amtRow);
+  const spdBox = mk('div', 'background:#27272a;padding:7px;border-radius:6px;display:flex;flex-direction:column;gap:5px');
+  const spdTop = mk('div', 'display:flex;justify-content:space-between;font-size:12px');
+  const sv = mk('b', 'color:#fb923c;cursor:pointer', { textContent: '250x', title: 'Click to type exact speed' });
+  spdTop.append(mk('span', '', { textContent: 'Burst Overdrive:' }), sv);
+  const sl = mk('input', 'width:100%;accent-color:#fb923c;cursor:pointer', { type: 'range', min: 1, max: 250000, value: 250 });
+  const presets = mk('div', 'display:grid;grid-template-columns:repeat(4,1fr);gap:4px');
+  spdBox.append(spdTop, sl, presets);
+  const botRow = mk('div', 'display:grid;grid-template-columns:1fr 1fr;gap:5px');
+  const stopBox = mk('div', 'display:flex;justify-content:space-between;align-items:center;font-size:11px;background:#27272a;padding:5px 7px;border-radius:6px');
+  const tm = mk('input', 'width:46px;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:4px;padding:2px 4px;text-align:right;font-size:11px', { type: 'number', min: 0, max: 86400, value: 0 });
+  stopBox.append(mk('span', 'color:#a1a1aa', { textContent: 'Stop(s):' }), tm);
+  const upgSpdBox = mk('div', 'display:flex;justify-content:space-between;align-items:center;font-size:11px;background:#27272a;padding:5px 7px;border-radius:6px');
+  const upgMs = mk('input', 'width:46px;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:4px;padding:2px 4px;text-align:right;font-size:11px', { type: 'number', min: 50, max: 10000, value: 250, step: 50 });
+  upgSpdBox.append(mk('span', 'color:#a1a1aa', { textContent: 'Upg(ms):' }), upgMs);
+  botRow.append(stopBox, upgSpdBox);
+  body.append(st, stats, row1, tg, amtBox, spdBox, botRow); m.append(hd, body); document.body.appendChild(m);
+  window._wbUI = { m, hd, body, minBtn, closeBtn, st, ck, cp, tt, lk, lkUpg, clrUpg, rst, tg, varSel, scanBtn, amtIn, amtBtn, frzBtn, sv, sl, presets, tm, upgMs, mk };
+})();
+(() => {
+  const vm = window._wbVM, cv = window._wbCV, u = window._wbUI;
+  if (!vm || !cv || !u) return;
+  const st = { run: 0, waitMode: 0, pos: null, spr: null, upgList: [], spd: 250, tot: 0, ms: 0, lt: null, cpsN: 0, stopS: 0, upgInt: 250, upgAcc: 0, upgIdx: 0, tog: 0, drg: 0, dx: 0, dy: 0, lm: { x: 0, y: 0 }, min: false, frozen: null };
+  const varMap = new Map();
+  const fN = n => { if (!isFinite(n)) return String(n); const a = Math.abs(n); return a >= 1e15 ? n.toExponential(2) : a >= 1e12 ? (n/1e12).toFixed(2)+'T' : a >= 1e9 ? (n/1e9).toFixed(2)+'B' : a >= 1e6 ? (n/1e6).toFixed(2)+'M' : a >= 1e3 ? (n/1e3).toFixed(1)+'K' : Math.floor(n).toLocaleString(); };
+  const parseNum = str => { const s = str.trim().toLowerCase().replace(/,/g, ''), mult = { k: 1e3, m: 1e6, b: 1e9, t: 1e12, q: 1e15 }, last = s.slice(-1); return mult[last] ? Number(s.slice(0, -1)) * mult[last] : Number(s); };
+  const fT = t => { const s = Math.floor(t/1e3); return new Array(Math.floor(s/3600), Math.floor((s%3600)/60), s%60).map(v => String(v).padStart(2,'0')).join(':'); };
+  const setS = v => { st.spd = Math.max(1, Math.min(250000, +v || 1)); u.sl.value = st.spd; u.sv.textContent = st.spd.toLocaleString() + 'x'; };
+  new Array(1000, 25000, 100000, 250000).forEach(v => { const b = u.mk('button', 'background:#3f3f46;color:' + (v === 250000 ? '#fb923c' : '#e4e4e7') + ';border:none;padding:4px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer', { textContent: (v/1e3) + 'k' }); b.onclick = () => setS(v); u.presets.appendChild(b); });
+  u.sv.onclick = () => { const v = prompt('Enter custom burst speed (1 - 250000):', st.spd); if (v !== null) setS(v); };
+  const scanVars = () => { const prev = u.varSel.value; varMap.clear(); u.varSel.innerHTML = ''; u.varSel.appendChild(u.mk('option', '', { value: '__AUTO__', textContent: '✨ Auto-Detect Whopper/Score' })); for (const t of vm.runtime.targets) { const tn = t.isStage ? 'Stage' : t.getName(); for (const [id, vr] of Object.entries(t.variables)) { if (vr && vr.type === '') { const k = t.id + '::' + id; varMap.set(k, vr); u.varSel.appendChild(u.mk('option', '', { value: k, textContent: '[' + tn + '] ' + vr.name + ' (' + (fN(Number(vr.value)) || vr.value) + ')' })); } } } if (prev && varMap.has(prev)) u.varSel.value = prev; };
+  scanVars();
+  const updUpgUI = () => { u.clrUpg.style.display = st.upgList.length ? 'block' : 'none'; u.clrUpg.textContent = '✕' + st.upgList.length; u.lkUpg.style.background = st.upgList.length ? '#059669' : '#27272a'; };
+  const ui = () => { if (!st.pos) return; u.tg.disabled = false; u.tg.style.cursor = 'pointer'; u.tg.style.color = '#fff'; u.tg.style.background = st.run ? '#dc2626' : '#16a34a'; u.tg.textContent = st.run ? '⏸️ Pause Clicking (S)' : '▶️ Resume Clicking (S)'; u.st.style.color = st.run ? '#4ade80' : '#facc15'; const uTag = st.upgList.length ? ' + ⚡' + st.upgList.length + ' Upg' : ''; const fTag = st.frozen ? ' 🔒' : ''; u.st.textContent = st.run ? 'Active: ' + (st.spr ? st.spr.getName() : 'Coords') + uTag + fTag : 'Status: Paused' + fTag; };
+  const setR = v => { st.run = v; st.lt = st.run ? performance.now() : null; if (!st.run) { st.cpsN = 0; u.cp.textContent = '0'; } ui(); };
+  const lock = (cx, cy) => { const b = cv.getBoundingClientRect(), rx = cx - b.left, ry = cy - b.top, mode = st.waitMode; st.waitMode = 0; u.lk.style.background = '#2563eb'; u.lk.textContent = st.pos ? '🎯 Re-Pick (L)' : '🎯 Main (L)'; updUpgUI(); if (rx < 0 || ry < 0 || rx > b.width || ry > b.height) return ui(); const io = vm.runtime.ioDevices.mouse; io.postData({ x: rx, y: ry, canvasWidth: b.width, canvasHeight: b.height, isDown: false }); const sx = io.getScratchX(), sy = io.getScratchY(); const hitSpr = Array.from(vm.runtime.targets).reverse().find(t => t.visible && !t.isStage && t.isTouchingPoint(sx, sy)) || null; if (mode === 2) { if (hitSpr && !st.upgList.includes(hitSpr)) st.upgList.push(hitSpr); updUpgUI(); u.st.style.color = hitSpr ? '#4ade80' : '#f87171'; u.st.textContent = hitSpr ? 'Queued Upg #' + st.upgList.length + ': ' + hitSpr.getName() : 'No sprite found at cursor'; if (st.pos) setTimeout(ui, 1100); return; } st.pos = { x: rx / b.width, y: ry / b.height }; st.spr = hitSpr; u.lk.textContent = '🎯 Re-Pick (L)'; setR(1); };
+  const getTargetVars = () => { const sel = u.varSel.value; if (sel !== '__AUTO__' && varMap.has(sel)) return new Array(varMap.get(sel)); const keys = new Array('whopper', 'click', 'score', 'burger', 'point', 'count', 'money', 'cash', '$'), out = new Array(), allNums = new Array(); for (const t of vm.runtime.targets) { for (const vr of Object.values(t.variables)) { if (vr && vr.type === '' && !vr.name.toLowerCase().includes('per')) { if (keys.some(k => vr.name.toLowerCase().includes(k))) out.push(vr); else if (!isNaN(Number(vr.value))) allNums.push({ vr, val: Number(vr.value) }); } } } if (!out.length && allNums.length) { allNums.sort((a, b) => b.val - a.val); out.push(allNums.at(0).vr); } return out; };
+  const setAmt = () => { const num = parseNum(u.amtIn.value); if (!u.amtIn.value.trim() || isNaN(num)) { u.st.style.color = '#f87171'; u.st.textContent = 'Enter a valid number!'; return; } const vrs = getTargetVars(); vrs.forEach(vr => { vr.value = num; }); if (st.frozen) st.frozen = { vrs, val: num }; st.tot = num; u.tt.textContent = fN(st.tot); u.st.style.color = vrs.length ? '#4ade80' : '#f87171'; u.st.textContent = vrs.length ? 'Set ' + vrs.length + ' var(s) → ' + fN(num) : 'No variable found'; scanVars(); };
+  window._wbCore = { st, fN, fT, setS, scanVars, updUpgUI, ui, setR, lock, getTargetVars, setAmt, parseNum };
+})();
+(() => {
+  const vm = window._wbVM, cv = window._wbCV, u = window._wbUI, c = window._wbCore;
+  if (!vm || !cv || !u || !c) return;
+  const { st, fN, fT, setS, scanVars, updUpgUI, ui, setR, lock, getTargetVars, setAmt, parseNum } = c;
+  const getC = () => { const b = cv.getBoundingClientRect(); return { x: st.pos.x * b.width, y: st.pos.y * b.height, canvasWidth: b.width, canvasHeight: b.height }; };
+  u.frzBtn.onclick = () => { if (st.frozen) { st.frozen = null; u.frzBtn.textContent = '🔓'; u.frzBtn.style.borderColor = '#3f3f46'; ui(); return; } const num = parseNum(u.amtIn.value), vrs = getTargetVars(); if (!vrs.length) return; const val = (!u.amtIn.value.trim() || isNaN(num)) ? Number(vrs.at(0).value) || 0 : num; st.frozen = { vrs, val }; u.frzBtn.textContent = '🔒'; u.frzBtn.style.borderColor = '#fb923c'; ui(); };
+  new Array(u.amtIn, u.varSel, u.tm, u.upgMs).forEach(el => { el.onmousedown = e => e.stopPropagation(); el.onclick = e => e.stopPropagation(); el.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter' && el === u.amtIn) setAmt(); }; });
+  u.amtBtn.onmousedown = e => e.stopPropagation(); u.amtBtn.onclick = e => { e.stopPropagation(); setAmt(); }; u.scanBtn.onclick = () => { scanVars(); u.st.style.color = '#38bdf8'; u.st.textContent = 'Scanned variables'; };
+  const oD = e => { if (e.target !== u.closeBtn && e.target !== u.minBtn) { st.drg = 1; st.dx = e.clientX - u.m.offsetLeft; st.dy = e.clientY - u.m.offsetTop; u.hd.style.cursor = 'grabbing'; } };
+  const oM = e => { st.lm = { x: e.clientX, y: e.clientY }; if (st.drg) { u.m.style.left = (e.clientX - st.dx) + 'px'; u.m.style.top = (e.clientY - st.dy) + 'px'; u.m.style.right = 'auto'; } };
+  const oU = () => { st.drg = 0; u.hd.style.cursor = 'grab'; };
+  const oC = e => { if (st.waitMode) { e.stopPropagation(); e.preventDefault(); lock(e.clientX, e.clientY); } };
+  const oK = e => { if (!new Array(u.amtIn, u.tm, u.upgMs, u.varSel).includes(document.activeElement)) { const k = e.key.toLowerCase(); if (k === 'l') { st.waitMode = 1; lock(st.lm.x, st.lm.y); } if (k === 'u') { st.waitMode = 2; lock(st.lm.x, st.lm.y); } if (k === 's' && st.pos) setR(!st.run); } };
+  u.minBtn.onclick = () => { st.min = !st.min; u.body.style.display = st.min ? 'none' : 'flex'; u.minBtn.textContent = st.min ? '+' : '—'; };
+  u.hd.onmousedown = oD; window.addEventListener('mousemove', oM); window.addEventListener('mouseup', oU); cv.addEventListener('mousedown', oC, 1); window.addEventListener('keydown', oK);
+  u.lk.onclick = () => { st.waitMode = 1; setR(0); u.lk.style.background = '#d97706'; u.lk.textContent = '👆 Click...'; u.st.style.color = '#fb923c'; u.st.textContent = 'Status: Click main target on game'; };
+  u.lkUpg.onclick = () => { st.waitMode = 2; u.lkUpg.style.background = '#d97706'; u.st.style.color = '#fb923c'; u.st.textContent = 'Status: Click an upgrade to add to queue'; };
+  u.clrUpg.onclick = () => { st.upgList = []; updUpgUI(); ui(); };
+  u.tg.onclick = () => st.pos && setR(!st.run); u.sl.oninput = e => setS(e.target.value); u.tm.onchange = e => { st.stopS = Math.max(0, +e.target.value || 0); e.target.value = st.stopS; }; u.upgMs.onchange = e => { st.upgInt = Math.max(50, +e.target.value || 250); e.target.value = st.upgInt; };
+  u.rst.onclick = () => { st.tot = st.ms = st.cpsN = 0; st.lt = st.run ? performance.now() : null; u.ck.textContent = '00:00:00'; u.cp.textContent = u.tt.textContent = '0'; };
+  const tick = () => { if (st.frozen) st.frozen.vrs.forEach(vr => { vr.value = st.frozen.val; }); if (!st.run || !st.pos) return; const now = performance.now(), dt = st.lt !== null ? now - st.lt : 10; st.ms += dt; st.lt = now; if (st.stopS > 0 && st.ms >= st.stopS * 1e3) { st.ms = st.stopS * 1e3; u.ck.textContent = fT(st.ms); setR(0); u.st.style.color = '#38bdf8'; u.st.textContent = 'Status: Timer Finished!'; return; } if (st.spr && !vm.runtime.targets.includes(st.spr)) st.spr = null; st.upgList = st.upgList.filter(s => vm.runtime.targets.includes(s)); if (st.upgList.length === 0 && u.clrUpg.style.display !== 'none') updUpgUI(); let f = 0; if (st.spr) { const end = now + 9; for (let i = 0; i < st.spd; i++) { vm.runtime.startHats('event_whenthisspriteclicked', null, st.spr); f++; if ((i & 63) === 63 && performance.now() > end) break; } } else f = 1; st.upgAcc += dt; if (st.upgList.length && st.upgAcc >= st.upgInt) { st.upgAcc = 0; const tUpg = st.upgList.at(st.upgIdx % st.upgList.length); st.upgIdx++; vm.runtime.startHats('event_whenthisspriteclicked', null, tUpg); } st.tot += f; st.cpsN += f; st.tog = !st.tog; vm.runtime.ioDevices.mouse.postData({ ...getC(), isDown: !!st.tog }); };
+  const uiTick = () => { if (st.run) { u.ck.textContent = fT(st.ms); u.cp.textContent = fN(st.cpsN * 4); st.cpsN = 0; u.tt.textContent = fN(st.tot); } };
+  let wk = null, wu = null, f1 = null, f2 = null;
+  try { const wb = new Blob(['let t1,t2;self.onmessage=e=>{if(e.data==="start"){t1=setInterval(()=>self.postMessage("tick"),10);t2=setInterval(()=>self.postMessage("ui"),250);}else{clearInterval(t1);clearInterval(t2);}};'], { type: 'application/javascript' }); wu = URL.createObjectURL(wb); wk = new Worker(wu); wk.onmessage = e => e.data === 'ui' ? uiTick() : tick(); wk.postMessage('start'); } catch (_) { f1 = setInterval(tick, 10); f2 = setInterval(uiTick, 250); }
+  window._wbC = () => { st.run = 0; if (wk) { wk.postMessage('stop'); wk.terminate(); URL.revokeObjectURL(wu); } clearInterval(f1); clearInterval(f2); window.removeEventListener('mousemove', oM); window.removeEventListener('mouseup', oU); window.removeEventListener('keydown', oK); cv.removeEventListener('mousedown', oC, 1); u.m.remove(); delete window._wbC; delete window._wbVM; delete window._wbCV; delete window._wbUI; delete window._wbCore; };
+  u.closeBtn.onclick = window._wbC;
+})();
+
