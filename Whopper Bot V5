@@ -1,0 +1,529 @@
+(() => {
+  if (typeof window._wbC === 'function') window._wbC();
+
+  const root = document.querySelector('#app') || document.body;
+  const reactKey = Object.keys(root).find(
+    k => k.startsWith('__reactContainer') || k.startsWith('__reactInternalInstance')
+  );
+
+  let vm = null;
+  if (reactKey) {
+    const seen = new Set();
+    const queue = [Reflect.get(root, reactKey)];
+    while (queue.length) {
+      const fiber = queue.pop();
+      if (!fiber || seen.has(fiber)) continue;
+      seen.add(fiber);
+      const candidate = fiber.stateNode?.props?.vm || fiber.memoizedProps?.vm || fiber.pendingProps?.vm;
+      if (candidate?.runtime?.ioDevices) {
+        vm = candidate;
+        break;
+      }
+      if (fiber.child) queue.push(fiber.child);
+      if (fiber.sibling) queue.push(fiber.sibling);
+    }
+  }
+
+  const cv = document.querySelector('canvas');
+  if (!vm || !cv) return alert('❌ Scratch VM or Canvas not found!');
+
+  window._wbVM = vm;
+  window._wbCV = cv;
+})();(() => {
+  if (!window._wbVM || !window._wbCV) return;
+
+  const mk = (tag, css, props) => {
+    const el = document.createElement(tag);
+    if (css) el.style.cssText = css;
+    if (props) Object.assign(el, props);
+    return el;
+  };
+
+  const fN = n => {
+    if (!isFinite(n)) return String(n);
+    const a = Math.abs(n);
+    if (a >= 1e15) return n.toExponential(2);
+    if (a >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+    if (a >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (a >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (a >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return Math.floor(n).toLocaleString();
+  };
+
+  const parseNum = str => {
+    const s = str.trim().toLowerCase().replace(/,/g, '');
+    if (!s) return NaN;
+    const mult = { k: 1e3, m: 1e6, b: 1e9, t: 1e12, q: 1e15, qi: 1e18, sx: 1e21 };
+    const match = s.match(/^([+-]?\d*\.?\d+(?:e[+-]?\d+)?)\s*([a-z]*)$/);
+    if (!match) return Number(s);
+    const num = parseFloat(match[1]);
+    const suf = match[2];
+    return suf && mult[suf] ? num * mult[suf] : suf ? NaN : num;
+  };
+
+  const fT = t => {
+    const s = Math.floor(t / 1e3);
+    return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60]
+      .map(v => String(v).padStart(2, '0'))
+      .join(':');
+  };
+
+  const MAX_SPD = 250000;
+  const slToSpd = v => Math.max(1, Math.round(Math.pow(MAX_SPD, v / 1000)));
+  const spdToSl = s => Math.round((Math.log(Math.max(1, s)) / Math.log(MAX_SPD)) * 1000);
+
+  window._wbUtil = { mk, fN, parseNum, fT, MAX_SPD, slToSpd, spdToSl };
+})();
+(() => {
+  const u = window._wbUtil;
+  if (!window._wbVM || !u) return;
+  const { mk } = u;
+
+  const m = mk('div', 'position:fixed;top:60px;right:20px;width:300px;background:#18181b;color:#f4f4f5;border:1px solid #f97316;border-radius:10px;box-shadow:0 14px 35px #000c;font:13px system-ui,sans-serif;z-index:999999;overflow:hidden', { id: 'whopper-bot-menu' });
+  const hd = mk('div', 'background:linear-gradient(90deg,#27272a,#3f1d0b);padding:9px 12px;cursor:grab;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #3f3f46;user-select:none');
+  const title = mk('b', 'color:#fb923c;letter-spacing:0.4px;font-size:13px', { textContent: '👑 Whopper Bot v5.1 ULTIMATE' });
+  const hdBtns = mk('div', 'display:flex;gap:8px;align-items:center');
+  const minBtn = mk('button', 'background:none;border:none;color:#a1a1aa;font-size:15px;cursor:pointer;line-height:1', { textContent: '—' });
+  const closeBtn = mk('button', 'background:none;border:none;color:#a1a1aa;font-size:17px;cursor:pointer;line-height:1', { textContent: '×' });
+  hdBtns.append(minBtn, closeBtn);
+  hd.append(title, hdBtns);
+
+  const body = mk('div', 'padding:10px;display:flex;flex-direction:column;gap:7px');
+  const stBar = mk('div', 'background:#27272a;padding:6px;border-radius:6px;font-size:11px;color:#facc15;text-align:center;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis', { textContent: 'Status: Ready (Hover & press L)' });
+
+  const stats = mk('div', 'display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#27272a;padding:6px;border-radius:6px;text-align:center');
+  const mkStat = (lbl, col) => {
+    const box = mk('div');
+    const l = mk('div', 'font-size:10px;color:#a1a1aa', { textContent: lbl });
+    const v = mk('b', 'font-size:12px;color:' + col, { textContent: lbl === 'CLOCK' ? '00:00:00' : '0' });
+    box.append(l, v);
+    stats.appendChild(box);
+    return v;
+  };
+  const ck = mkStat('CLOCK', '#38bdf8');
+  const cp = mkStat('CPS', '#4ade80');
+  const tt = mkStat('TOTAL', '#fb923c');
+
+  body.append(stBar, stats);
+  m.append(hd, body);
+  document.body.appendChild(m);
+
+  window._wbUI = { m, hd, body, minBtn, closeBtn, stBar, ck, cp, tt };
+})();
+(() => {
+  const ui = window._wbUI, u = window._wbUtil;
+  if (!ui || !u) return;
+  const { mk, spdToSl } = u;
+
+  const row1 = mk('div', 'display:flex;gap:4px');
+  const lk = mk('button', 'flex:1;background:#2563eb;color:#fff;border:none;padding:7px 6px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer', { textContent: '🎯 Main (L)' });
+  const lkUpg = mk('button', 'background:#27272a;color:#e4e4e7;border:1px solid #3f3f46;padding:7px 7px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer', { textContent: '⚡ +Upg (U)' });
+  const clrUpg = mk('button', 'background:#27272a;color:#f87171;border:1px solid #3f3f46;padding:7px 7px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;display:none', { textContent: '✕0' });
+  const rst = mk('button', 'background:#27272a;color:#a1a1aa;border:1px solid #3f3f46;padding:0 8px;border-radius:6px;cursor:pointer', { textContent: '↺' });
+  row1.append(lk, lkUpg, clrUpg, rst);
+
+  const tg = mk('button', 'background:#3f3f46;color:#71717a;border:none;padding:8px;border-radius:6px;font-weight:600;cursor:not-allowed', { textContent: '▶️ Start Clicking (S)', disabled: true });
+
+  const amtBox = mk('div', 'background:#27272a;padding:7px;border-radius:6px;display:flex;flex-direction:column;gap:5px');
+  const amtTop = mk('div', 'display:flex;justify-content:space-between;align-items:center');
+  const amtLbl = mk('span', 'font-size:10px;color:#a1a1aa;font-weight:700', { textContent: 'VARIABLE INJECTOR & FREEZE' });
+  const scanBtn = mk('button', 'background:none;border:none;color:#38bdf8;font-size:11px;cursor:pointer;padding:0', { textContent: '↻ Scan' });
+  amtTop.append(amtLbl, scanBtn);
+
+  const varSel = mk('select', 'width:100%;background:#18181b;color:#e4e4e7;border:1px solid #3f3f46;border-radius:4px;padding:4px 6px;font-size:11px');
+  const amtRow = mk('div', 'display:flex;gap:4px');
+  const amtIn = mk('input', 'flex:1;min-width:0;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:4px;padding:5px 7px;font-size:12px', { type: 'text', placeholder: 'e.g. 999T, 1e18' });
+  const amtBtn = mk('button', 'background:#ea580c;color:#fff;border:none;padding:5px 9px;border-radius:4px;font-weight:600;font-size:11px;cursor:pointer', { textContent: 'SET' });
+  const frzBtn = mk('button', 'background:#18181b;color:#a1a1aa;border:1px solid #3f3f46;padding:5px 8px;border-radius:4px;font-size:11px;cursor:pointer', { textContent: '🔓', title: 'Freeze/Lock Variable Value' });
+  amtRow.append(amtIn, amtBtn, frzBtn);
+  amtBox.append(amtTop, varSel, amtRow);
+
+  const spdBox = mk('div', 'background:#27272a;padding:7px;border-radius:6px;display:flex;flex-direction:column;gap:5px');
+  const spdTop = mk('div', 'display:flex;justify-content:space-between;font-size:12px');
+  const sv = mk('b', 'color:#fb923c;cursor:pointer', { textContent: '250x', title: 'Click to type exact speed' });
+  spdTop.append(mk('span', '', { textContent: 'Burst Overdrive:' }), sv);
+
+  const sl = mk('input', 'width:100%;accent-color:#fb923c;cursor:pointer', { type: 'range', min: 0, max: 1000, value: spdToSl(250) });
+  const presets = mk('div', 'display:grid;grid-template-columns:repeat(4,1fr);gap:4px');
+  spdBox.append(spdTop, sl, presets);
+
+  const botRow = mk('div', 'display:grid;grid-template-columns:1fr 1fr;gap:5px');
+  const stopBox = mk('div', 'display:flex;justify-content:space-between;align-items:center;font-size:11px;background:#27272a;padding:5px 7px;border-radius:6px');
+  const tm = mk('input', 'width:46px;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:4px;padding:2px 4px;text-align:right;font-size:11px', { type: 'number', min: 0, max: 86400, value: 0 });
+  stopBox.append(mk('span', 'color:#a1a1aa', { textContent: 'Stop(s):' }), tm);
+
+  const upgSpdBox = mk('div', 'display:flex;justify-content:space-between;align-items:center;font-size:11px;background:#27272a;padding:5px 7px;border-radius:6px');
+  const upgMs = mk('input', 'width:46px;background:#18181b;color:#f4f4f5;border:1px solid #3f3f46;border-radius:4px;padding:2px 4px;text-align:right;font-size:11px', { type: 'number', min: 50, max: 10000, value: 250, step: 50 });
+  upgSpdBox.append(mk('span', 'color:#a1a1aa', { textContent: 'Upg(ms):' }), upgMs);
+  botRow.append(stopBox, upgSpdBox);
+
+  ui.body.append(row1, tg, amtBox, spdBox, botRow);
+  Object.assign(ui, { lk, lkUpg, clrUpg, rst, tg, varSel, scanBtn, amtIn, amtBtn, frzBtn, sv, sl, presets, tm, upgMs });
+})();
+(() => {
+  const vm = window._wbVM, cv = window._wbCV, ui = window._wbUI, util = window._wbUtil;
+  if (!vm || !cv || !ui || !util) return;
+  const { mk, MAX_SPD, spdToSl } = util;
+
+  const st = {
+    run: 0, waitMode: 0, pos: null, spr: null, upgList: [], spd: 250,
+    tot: 0, ms: 0, lt: null, cpsN: 0, cpsT: 0, upgAcc: 0, upgIdx: 0,
+    lm: { x: 0, y: 0 }, min: false, frozen: null, raf: null
+  };
+
+  const setS = v => {
+    st.spd = Math.max(1, Math.min(MAX_SPD, Math.round(+v || 1)));
+    ui.sl.value = spdToSl(st.spd);
+    ui.sv.textContent = st.spd.toLocaleString() + 'x';
+  };
+
+  [1000, 25000, 100000, 250000].forEach(v => {
+    const b = mk(
+      'button',
+      'background:#3f3f46;color:' + (v === 250000 ? '#fb923c' : '#e4e4e7') + ';border:none;padding:4px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer',
+      { textContent: (v / 1e3) + 'k' }
+    );
+    b.onclick = () => setS(v);
+    ui.presets.appendChild(b);
+  });
+
+  const updUpgUI = () => {
+    ui.clrUpg.style.display = st.upgList.length ? 'block' : 'none';
+    ui.clrUpg.textContent = '✕' + st.upgList.length;
+    ui.lkUpg.style.background = st.upgList.length ? '#059669' : '#27272a';
+  };
+
+  const renderUI = () => {
+    if (!st.pos) return;
+    ui.tg.disabled = false;
+    ui.tg.style.cursor = 'pointer';
+    ui.tg.style.color = '#fff';
+    ui.tg.style.background = st.run ? '#dc2626' : '#16a34a';
+    ui.tg.textContent = st.run ? '⏸️ Pause Clicking (S)' : '▶️ Resume Clicking (S)';
+    ui.stBar.style.color = st.run ? '#4ade80' : '#facc15';
+    const uTag = st.upgList.length ? ' + ⚡' + st.upgList.length + ' Upg' : '';
+    const fTag = st.frozen ? ' 🔒' : '';
+    ui.stBar.textContent = st.run
+      ? 'Active: ' + (st.spr ? st.spr.getName() : 'Coords') + uTag + fTag
+      : 'Status: Paused' + fTag;
+  };
+
+  const setR = v => {
+    st.run = v;
+    st.lt = st.run ? performance.now() : null;
+    if (!st.run) {
+      st.cpsN = 0;
+      st.cpsT = 0;
+      ui.cp.textContent = '0';
+    }
+    renderUI();
+  };
+
+  // Forces Scratch VM to process each click individually even in high-speed bursts
+  const fireClick = (target, nx, ny) => {
+    const b = cv.getBoundingClientRect();
+    const io = vm.runtime.ioDevices.mouse;
+    const x = nx * b.width;
+    const y = ny * b.height;
+
+    if (target) {
+      // Restart any active 'when this sprite clicked' threads so consecutive clicks don't get ignored
+      const threads = vm.runtime.startHats('event_whenthisspriteclicked', null, target);
+      for (let i = 0; i < threads.length; i++) {
+        vm.runtime.sequencer.stepThread(threads[i]);
+      }
+    }
+
+    io.postData({ x, y, canvasWidth: b.width, canvasHeight: b.height, isDown: true });
+    io.postData({ x, y, canvasWidth: b.width, canvasHeight: b.height, isDown: false });
+  };
+
+  const lock = (cx, cy) => {
+    const b = cv.getBoundingClientRect();
+    const rx = cx - b.left;
+    const ry = cy - b.top;
+    const mode = st.waitMode;
+    st.waitMode = 0;
+    ui.lk.style.background = '#2563eb';
+    ui.lk.textContent = st.pos ? '🎯 Re-Pick (L)' : '🎯 Main (L)';
+    updUpgUI();
+
+    if (rx < 0 || ry < 0 || rx > b.width || ry > b.height) {
+      ui.stBar.style.color = '#f87171';
+      ui.stBar.textContent = 'Cursor outside game canvas!';
+      return;
+    }
+
+    const io = vm.runtime.ioDevices.mouse;
+    io.postData({ x: rx, y: ry, canvasWidth: b.width, canvasHeight: b.height, isDown: false });
+    const sx = io.getScratchX();
+    const sy = io.getScratchY();
+    const hitSpr = Array.from(vm.runtime.targets).reverse().find(t => t.visible && !t.isStage && t.isTouchingPoint(sx, sy)) || null;
+
+    if (mode === 2) {
+      if (hitSpr && !st.upgList.some(u => u.spr === hitSpr)) {
+        st.upgList.push({ spr: hitSpr, x: rx / b.width, y: ry / b.height });
+      }
+      updUpgUI();
+      ui.stBar.style.color = hitSpr ? '#4ade80' : '#f87171';
+      ui.stBar.textContent = hitSpr ? 'Queued Upg #' + st.upgList.length + ': ' + hitSpr.getName() : 'No sprite found at cursor';
+      if (st.pos) setTimeout(renderUI, 1100);
+      return;
+    }
+
+    st.pos = { x: rx / b.width, y: ry / b.height };
+    st.spr = hitSpr;
+    ui.lk.textContent = '🎯 Re-Pick (L)';
+    setR(1);
+  };
+
+  window._wbClick = { st, setS, updUpgUI, renderUI, setR, fireClick, lock };
+})();
+(() => {
+  const vm = window._wbVM, ui = window._wbUI, util = window._wbUtil, clk = window._wbClick;
+  if (!vm || !ui || !util || !clk) return;
+  const { mk, fN, parseNum } = util;
+  const { st, renderUI } = clk;
+
+  const varMap = new Map();
+
+  const scanVars = () => {
+    const prev = ui.varSel.value;
+    varMap.clear();
+    ui.varSel.innerHTML = '';
+    ui.varSel.appendChild(mk('option', '', { value: '__AUTO__', textContent: '✨ Auto-Detect Whopper/Score' }));
+    for (const t of vm.runtime.targets) {
+      const tn = t.isStage ? 'Stage' : t.getName();
+      for (const [id, vr] of Object.entries(t.variables)) {
+        if (vr && vr.type === '') {
+          const k = t.id + '::' + id;
+          varMap.set(k, vr);
+          const disp = !isNaN(Number(vr.value)) && vr.value !== '' ? fN(Number(vr.value)) : vr.value;
+          ui.varSel.appendChild(mk('option', '', { value: k, textContent: `[${tn}] ${vr.name} (${disp})` }));
+        }
+      }
+    }
+    if (prev && varMap.has(prev)) ui.varSel.value = prev;
+  };
+  scanVars();
+
+  const getTargetVars = () => {
+    const sel = ui.varSel.value;
+    if (sel !== '__AUTO__' && varMap.has(sel)) return [varMap.get(sel)];
+    const keys = ['whopper', 'click', 'score', 'burger', 'point', 'count', 'money', 'cash', '$'];
+    const out = [];
+    const allNums = [];
+    for (const t of vm.runtime.targets) {
+      for (const vr of Object.values(t.variables)) {
+        if (vr && vr.type === '' && !vr.name.toLowerCase().includes('per')) {
+          if (keys.some(k => vr.name.toLowerCase().includes(k))) out.push(vr);
+          else if (!isNaN(Number(vr.value))) allNums.push({ vr, val: Number(vr.value) });
+        }
+      }
+    }
+    if (!out.length && allNums.length) {
+      allNums.sort((a, b) => b.val - a.val);
+      out.push(allNums[0].vr);
+    }
+    return out;
+  };
+
+  const setAmt = () => {
+    const num = parseNum(ui.amtIn.value);
+    if (!ui.amtIn.value.trim() || isNaN(num)) {
+      ui.stBar.style.color = '#f87171';
+      ui.stBar.textContent = 'Enter a valid number!';
+      return;
+    }
+    const vrs = getTargetVars();
+    vrs.forEach(vr => { vr.value = num; });
+    if (st.frozen) st.frozen = { vrs, val: num };
+    st.tot = num;
+    ui.tt.textContent = fN(st.tot);
+    ui.stBar.style.color = vrs.length ? '#4ade80' : '#f87171';
+    ui.stBar.textContent = vrs.length ? 'Set ' + vrs.length + ' var(s) → ' + fN(num) : 'No variable found';
+    scanVars();
+  };
+
+  const toggleFreeze = () => {
+    if (st.frozen) {
+      st.frozen = null;
+      ui.frzBtn.textContent = '🔓';
+      ui.frzBtn.style.borderColor = '#3f3f46';
+      renderUI();
+      return;
+    }
+    const vrs = getTargetVars();
+    if (!vrs.length) {
+      ui.stBar.style.color = '#f87171';
+      ui.stBar.textContent = 'No variable found to freeze';
+      return;
+    }
+    const typed = parseNum(ui.amtIn.value);
+    const val = !isNaN(typed) ? typed : vrs[0].value;
+    st.frozen = { vrs, val };
+    ui.frzBtn.textContent = '🔒';
+    ui.frzBtn.style.borderColor = '#fb923c';
+    ui.stBar.style.color = '#fb923c';
+    ui.stBar.textContent = 'Frozen ' + vrs.length + ' var(s) at ' + (typeof val === 'number' ? fN(val) : val);
+  };
+
+  window._wbVars = { varMap, scanVars, setAmt, toggleFreeze };
+})();
+(() => {
+  const cv = window._wbCV, ui = window._wbUI, util = window._wbUtil, clk = window._wbClick, vars = window._wbVars;
+  if (!cv || !ui || !util || !clk || !vars) return;
+  const { fN, fT, parseNum, slToSpd } = util;
+  const { st, setS, updUpgUI, renderUI, setR, fireClick, lock } = clk;
+  const { varMap, scanVars, setAmt, toggleFreeze } = vars;
+
+  const loop = now => {
+    st.raf = requestAnimationFrame(loop);
+
+    if (st.frozen) {
+      st.frozen.vrs.forEach(vr => { vr.value = st.frozen.val; });
+    }
+
+    if (!st.run || !st.pos) return;
+
+    const dt = Math.min(now - (st.lt || now), 100);
+    st.lt = now;
+    st.ms += dt;
+    st.cpsT += dt;
+    st.upgAcc += dt;
+
+    const stopSec = Number(ui.tm.value) || 0;
+    if (stopSec > 0 && st.ms >= stopSec * 1000) {
+      setR(0);
+      ui.stBar.style.color = '#38bdf8';
+      ui.stBar.textContent = `Auto-stopped at ${stopSec}s`;
+      return;
+    }
+
+    const targetClicks = Math.max(1, Math.round((st.spd * dt) / 1000));
+    const deadline = performance.now() + 12;
+    let done = 0;
+
+    while (done < targetClicks && performance.now() < deadline) {
+      fireClick(st.spr, st.pos.x, st.pos.y);
+      done++;
+    }
+
+    const upgDelay = Math.max(50, Number(ui.upgMs.value) || 250);
+    if (st.upgList.length && st.upgAcc >= upgDelay) {
+      st.upgAcc = 0;
+      const uItem = st.upgList[st.upgIdx % st.upgList.length];
+      fireClick(uItem.spr, uItem.x, uItem.y);
+      st.upgIdx++;
+      done++;
+    }
+
+    st.tot += done;
+    st.cpsN += done;
+
+    ui.ck.textContent = fT(st.ms);
+    ui.tt.textContent = fN(st.tot);
+
+    if (st.cpsT >= 500) {
+      ui.cp.textContent = fN(Math.round((st.cpsN * 1000) / st.cpsT));
+      st.cpsN = 0;
+      st.cpsT = 0;
+    }
+  };
+
+  const onMove = e => { st.lm.x = e.clientX; st.lm.y = e.clientY; };
+
+  const onCanvasClick = e => {
+    if (st.waitMode) {
+      e.stopPropagation();
+      lock(e.clientX, e.clientY);
+    }
+  };
+
+  const onKey = e => {
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'l') { st.waitMode = 1; lock(st.lm.x, st.lm.y); }
+    else if (k === 'u') { st.waitMode = 2; lock(st.lm.x, st.lm.y); }
+    else if (k === 's') { if (st.pos) setR(st.run ? 0 : 1); }
+    else if (k === 'escape' && st.waitMode) { st.waitMode = 0; ui.lk.style.background = '#2563eb'; renderUI(); }
+  };
+
+  let drag = null;
+  const onHdDown = e => {
+    if (e.target.tagName === 'BUTTON') return;
+    const r = ui.m.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    ui.hd.style.cursor = 'grabbing';
+  };
+  const onDragMove = e => {
+    if (!drag) return;
+    ui.m.style.right = 'auto';
+    ui.m.style.left = Math.max(0, Math.min(window.innerWidth - ui.m.offsetWidth, e.clientX - drag.dx)) + 'px';
+    ui.m.style.top = Math.max(0, Math.min(window.innerHeight - ui.m.offsetHeight, e.clientY - drag.dy)) + 'px';
+  };
+  const onDragUp = () => { drag = null; ui.hd.style.cursor = 'grab'; };
+
+  ui.lk.onclick = () => {
+    st.waitMode = 1;
+    ui.lk.style.background = '#eab308';
+    ui.lk.textContent = '👆 Click Target...';
+    ui.stBar.style.color = '#facc15';
+    ui.stBar.textContent = 'Click the main target on canvas (or press L)';
+  };
+
+  ui.lkUpg.onclick = () => {
+    st.waitMode = 2;
+    ui.lkUpg.style.background = '#eab308';
+    ui.stBar.style.color = '#facc15';
+    ui.stBar.textContent = 'Click an upgrade sprite (or hover & press U)';
+  };
+
+  ui.clrUpg.onclick = () => { st.upgList = []; st.upgIdx = 0; updUpgUI(); renderUI(); };
+  ui.rst.onclick = () => { st.tot = 0; st.ms = 0; st.cpsN = 0; st.cpsT = 0; ui.ck.textContent = '00:00:00'; ui.cp.textContent = '0'; ui.tt.textContent = '0'; };
+  ui.tg.onclick = () => { if (st.pos) setR(st.run ? 0 : 1); };
+  ui.scanBtn.onclick = () => { scanVars(); ui.stBar.textContent = `Scanned ${varMap.size} variables`; };
+  ui.amtBtn.onclick = setAmt;
+  ui.amtIn.onkeydown = e => { if (e.key === 'Enter') setAmt(); };
+  ui.frzBtn.onclick = toggleFreeze;
+  ui.sl.oninput = () => setS(slToSpd(Number(ui.sl.value)));
+  ui.sv.onclick = () => {
+    const v = prompt('Enter custom burst speed (1 - 250000):', st.spd);
+    if (v !== null) setS(parseNum(v));
+  };
+
+  ui.minBtn.onclick = () => {
+    st.min = !st.min;
+    ui.body.style.display = st.min ? 'none' : 'flex';
+    ui.minBtn.textContent = st.min ? '+' : '—';
+  };
+
+  window._wbC = () => {
+    cancelAnimationFrame(st.raf);
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup', onDragUp);
+    document.removeEventListener('keydown', onKey);
+    cv.removeEventListener('click', onCanvasClick, true);
+    ui.m.remove();
+    delete window._wbVM;
+    delete window._wbCV;
+    delete window._wbUtil;
+    delete window._wbUI;
+    delete window._wbClick;
+    delete window._wbVars;
+    delete window._wbC;
+  };
+
+  ui.closeBtn.onclick = window._wbC;
+
+  document.addEventListener('mousemove', onMove);
+  ui.hd.addEventListener('mousedown', onHdDown);
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragUp);
+  document.addEventListener('keydown', onKey);
+  cv.addEventListener('click', onCanvasClick, true);
+
+  st.raf = requestAnimationFrame(loop);
+})();
+
