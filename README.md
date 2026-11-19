@@ -40,7 +40,7 @@ Here are some of the tools, technologies, and languages I work with:
 ### 🌟 Whopper Bot (Whopper Clicker Bot)
 * **Description:** A Auto-Clicking Whopper Bot.
 * **Tech Used:** JavaScript.
-* **Links:** [🔗 Live Demo](https://github.com/LilBro24327/All-my-Cheats/blob/main/Whopper-Bot-V4-ULTIMATE) | [💻 GitHub Repo](https://github.com/LilBro24327/All-my-Cheats)
+* **Links:** [🔗 Live Demo](https://github.com/LilBro24327/All-my-Cheats/blob/main/Whopper%20Bot%20V4%20ULTIMATE) | [💻 GitHub Repo](https://github.com/LilBro24327/All-my-Cheats)
 
 ---
 
