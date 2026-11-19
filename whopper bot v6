@@ -1,0 +1,26 @@
+(() => {
+  if (window._wbC) window._wbC();
+  const r = document.querySelector('#app') || document.body;
+  const rk = Object.keys(r).find(k => k.startsWith('__reactContainer') || k.startsWith('__reactInternalInstance'));
+  let vm = null;
+  if (rk) {
+    const s = new Set(), q = new Array(Reflect.get(r, rk));
+    while (q.length) {
+      const f = q.pop();
+      if (!f || s.has(f)) continue;
+      s.add(f);
+      const c = f.stateNode?.props?.vm || f.memoizedProps?.vm || f.pendingProps?.vm;
+      if (c?.runtime?.ioDevices) { vm = c; break; }
+      if (f.child) q.push(f.child);
+      if (f.sibling) q.push(f.sibling);
+    }
+  }
+  const cv = document.querySelector('canvas');
+  if (!vm || !cv) return alert('❌ Scratch VM or Canvas not found!');
+  window._wbVM = vm;
+  window._wbCV = cv;
+  const saved = JSON.parse(localStorage.getItem('wb_v6_cfg') || '{}');
+  window._wbCfg = { spd: 250, stopS: 0, upgInt: 250, hideKey: 'ShiftRight', ...saved };
+  window._wbSave = () => localStorage.setItem('wb_v6_cfg', JSON.stringify(window._wbCfg));
+  console.log('✅ Part 1/7 Loaded');
+})();
