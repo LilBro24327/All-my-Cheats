@@ -23,4 +23,257 @@
   window._wbCfg = { spd: 250, stopS: 0, upgInt: 250, hideKey: 'ShiftRight', ...saved };
   window._wbSave = () => localStorage.setItem('wb_v6_cfg', JSON.stringify(window._wbCfg));
   console.log('✅ Part 1/7 Loaded');
+})();(() => {
+    const vm = window._wbVM;
+    if (!vm) return console.error('❌ Run Part 1 first');
+
+    window._wb = {
+        active: false,
+        upgActive: false,
+        timers: [],
+
+        // Get the Stage target (where global variables live)
+        stage: () => vm.runtime.getTargetForStage(),
+
+        // Find any variable by name across Stage and all Sprites
+        getVar(name) {
+            for (const target of vm.runtime.targets) {
+                for (const id in target.variables) {
+                    const v = target.variables[id];
+                    if (v.name.toLowerCase() === name.toLowerCase()) return v;
+                }
+            }
+            return null;
+        },
+
+        // Set a variable's value directly
+        setVar(name, val) {
+            const v = this.getVar(name);
+            if (v) v.value = val;
+        },
+
+        // Dump all variables & values to console (helpful for finding your score/money var)
+        scanVars() {
+            const list = [];
+            vm.runtime.targets.forEach(t => {
+                Object.values(t.variables).forEach(v => {
+                    if (v.type === '') list.push({ sprite: t.getName(), name: v.name, value: v.value });
+                });
+            });
+            console.table(list);
+            return list;
+        },
+
+        // Simulate a click at Scratch coordinates (-240..240, -180..180)
+        clickScratch(x = 0, y = 0) {
+            const rect = window._wbCV.getBoundingClientRect();
+            const clientX = rect.left + ((x + 240) / 480) * rect.width;
+            const clientY = rect.top + ((180 - y) / 360) * rect.height;
+            const data = { x: clientX, y: clientY, canvasWidth: rect.width, canvasHeight: rect.height };
+            
+            vm.postIOData('mouse', { ...data, isDown: true });
+            setTimeout(() => vm.postIOData('mouse', { ...data, isDown: false }), 15);
+        },
+
+        // Click a specific sprite by its name
+        clickSprite(name) {
+            const sprite = vm.runtime.targets.find(t => t.isOriginal && t.getName().toLowerCase() === name.toLowerCase());
+            if (sprite) this.clickScratch(sprite.x, sprite.y);
+        }
+    };
+
+    console.log('✅ Part 2/7 Loaded (VM Helpers)');
 })();
+(() => {
+    const wb = window._wb;
+    const cfg = window._wbCfg;
+    if (!wb) return console.error('❌ Run Part 2 first');
+
+    let mainLoopId = null;
+
+    wb.startMain = () => {
+        if (mainLoopId) clearInterval(mainLoopId);
+        wb.active = true;
+
+        mainLoopId = setInterval(() => {
+            if (!wb.active) return;
+
+            // Optional: Check stop condition (change 'Score' to your target variable name)
+            if (cfg.stopS > 0) {
+                const scoreVar = wb.getVar('Score') || wb.getVar('Clicks') || wb.getVar('Money');
+                if (scoreVar && Number(scoreVar.value) >= cfg.stopS) {
+                    wb.stopMain();
+                    console.log(`🛑 Reached stop target: ${cfg.stopS}`);
+                    return;
+                }
+            }
+
+            // Default action: click center of stage (customize target sprite/coords here)
+            wb.clickScratch(0, 0);
+        }, Math.max(10, cfg.spd));
+    };
+
+    wb.stopMain = () => {
+        wb.active = false;
+        if (mainLoopId) clearInterval(mainLoopId);
+        mainLoopId = null;
+    };
+
+    wb.timers.push(() => wb.stopMain());
+    console.log('✅ Part 3/7 Loaded (Main Loop)');
+})();
+(() => {
+    const wb = window._wb;
+    const cfg = window._wbCfg;
+    if (!wb) return console.error('❌ Run Part 3 first');
+
+    let upgLoopId = null;
+
+    wb.startUpgrade = () => {
+        if (upgLoopId) clearInterval(upgLoopId);
+        wb.upgActive = true;
+
+        upgLoopId = setInterval(() => {
+            if (!wb.upgActive) return;
+
+            // Finds any sprite with "upgrade" or "shop" in its name and clicks it
+            const targets = window._wbVM.runtime.targets.filter(
+                t => t.isOriginal && t.visible && /upgrade|buy|shop/i.test(t.getName())
+            );
+            targets.forEach(t => wb.clickScratch(t.x, t.y));
+        }, Math.max(50, cfg.upgInt));
+    };
+
+    wb.stopUpgrade = () => {
+        wb.upgActive = false;
+        if (upgLoopId) clearInterval(upgLoopId);
+        upgLoopId = null;
+    };
+
+    wb.timers.push(() => wb.stopUpgrade());
+    console.log('✅ Part 4/7 Loaded (Auto-Upgrade)');
+})();
+(() => {
+    const cfg = window._wbCfg;
+    if (!cfg) return console.error('❌ Run Part 1 first');
+
+    const ui = document.createElement('div');
+    ui.id = 'wb-v6-ui';
+    ui.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 999999;
+        width: 240px; background: #18181b; color: #f4f4f5;
+        border: 1px solid #3f3f46; border-radius: 10px; padding: 12px;
+        font-family: system-ui, sans-serif; font-size: 13px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5); user-select: none;
+    `;
+
+    ui.innerHTML = `
+        <div id="wb-drag" style="font-weight: 700; margin-bottom: 10px; cursor: move; display: flex; justify-content: space-between; align-items: center;">
+            <span>⚡ WB v6 Panel</span>
+            <span style="font-size: 11px; color: #a1a1aa;">[${cfg.hideKey}]</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button id="wb-btn-main" style="padding: 6px; border-radius: 6px; border: none; background: #2563eb; color: white; font-weight: 600; cursor: pointer;">Start Main Loop</button>
+            <button id="wb-btn-upg" style="padding: 6px; border-radius: 6px; border: none; background: #3f3f46; color: white; font-weight: 600; cursor: pointer;">Start Auto-Upgrade</button>
+            
+            <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Click Delay (ms):</span>
+                <input id="wb-in-spd" type="number" value="${cfg.spd}" style="width: 75px; background: #27272a; color: white; border: 1px solid #52525b; border-radius: 4px; padding: 2px 5px;">
+            </label>
+            <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Stop At (0=off):</span>
+                <input id="wb-in-stop" type="number" value="${cfg.stopS}" style="width: 75px; background: #27272a; color: white; border: 1px solid #52525b; border-radius: 4px; padding: 2px 5px;">
+            </label>
+            <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Upgrade Int (ms):</span>
+                <input id="wb-in-upg" type="number" value="${cfg.upgInt}" style="width: 75px; background: #27272a; color: white; border: 1px solid #52525b; border-radius: 4px; padding: 2px 5px;">
+            </label>
+            <button id="wb-btn-scan" style="margin-top: 4px; padding: 5px; border-radius: 6px; border: 1px solid #52525b; background: transparent; color: #d4d4d8; cursor: pointer; font-size: 12px;">Scan Variables (Console)</button>
+        </div>
+    `;
+
+    document.body.appendChild(ui);
+    window._wbUI = ui;
+    console.log('✅ Part 5/7 Loaded (UI Built)');
+})();
+(() => {
+    const ui = window._wbUI;
+    const wb = window._wb;
+    const cfg = window._wbCfg;
+    if (!ui || !wb) return console.error('❌ Run Parts 1–5 first');
+
+    const btnMain = ui.querySelector('#wb-btn-main');
+    const btnUpg = ui.querySelector('#wb-btn-upg');
+    const inSpd = ui.querySelector('#wb-in-spd');
+    const inStop = ui.querySelector('#wb-in-stop');
+    const inUpg = ui.querySelector('#wb-in-upg');
+
+    btnMain.onclick = () => {
+        if (wb.active) {
+            wb.stopMain();
+            btnMain.textContent = 'Start Main Loop';
+            btnMain.style.background = '#2563eb';
+        } else {
+            wb.startMain();
+            btnMain.textContent = 'Stop Main Loop';
+            btnMain.style.background = '#dc2626';
+        }
+    };
+
+    btnUpg.onclick = () => {
+        if (wb.upgActive) {
+            wb.stopUpgrade();
+            btnUpg.textContent = 'Start Auto-Upgrade';
+            btnUpg.style.background = '#3f3f46';
+        } else {
+            wb.startUpgrade();
+            btnUpg.textContent = 'Stop Auto-Upgrade';
+            btnUpg.style.background = '#16a34a';
+        }
+    };
+
+    inSpd.onchange = () => { cfg.spd = Math.max(10, Number(inSpd.value) || 250); window._wbSave(); if (wb.active) wb.startMain(); };
+    inStop.onchange = () => { cfg.stopS = Math.max(0, Number(inStop.value) || 0); window._wbSave(); };
+    inUpg.onchange = () => { cfg.upgInt = Math.max(50, Number(inUpg.value) || 250); window._wbSave(); if (wb.upgActive) wb.startUpgrade(); };
+    ui.querySelector('#wb-btn-scan').onclick = () => wb.scanVars();
+
+    // Drag logic
+    const header = ui.querySelector('#wb-drag');
+    let dragging = false, offsetX = 0, offsetY = 0;
+    header.onmousedown = (e) => { dragging = true; offsetX = e.clientX - ui.offsetLeft; offsetY = e.clientY - ui.offsetTop; };
+    window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        ui.style.left = (e.clientX - offsetX) + 'px';
+        ui.style.top = (e.clientY - offsetY) + 'px';
+        ui.style.right = 'auto';
+    });
+    window.addEventListener('mouseup', () => dragging = false);
+
+    console.log('✅ Part 6/7 Loaded (UI Wired)');
+})();
+(() => {
+    const ui = window._wbUI;
+    const wb = window._wb;
+    const cfg = window._wbCfg;
+    if (!ui || !wb) return console.error('❌ Run Parts 1–6 first');
+
+    const onKeyDown = (e) => {
+        if (e.code === cfg.hideKey) {
+            ui.style.display = ui.style.display === 'none' ? 'block' : 'none';
+        }
+    };
+    window.addEventListener('keydown', onKeyDown);
+
+    // Master cleanup function called by Part 1 on reload
+    window._wbC = () => {
+        wb.timers.forEach(fn => fn());
+        window.removeEventListener('keydown', onKeyDown);
+        if (ui && ui.parentNode) ui.parentNode.removeChild(ui);
+        delete window._wb;
+        delete window._wbUI;
+        console.log('🧹 Previous WB v6 instance cleaned up');
+    };
+
+    console.log('✅ Part 7/7 Loaded — Ready! Press ' + cfg.hideKey + ' to hide/show.');
+})();
+
