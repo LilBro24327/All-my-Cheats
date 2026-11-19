@@ -60,5 +60,7 @@ SCRATCH STUFF:
 ## 📫 Connect With Me
 ## More Stuff in the making...
 ## LilBro24327 >
-Feel free to reach out if you'd like to collaborate on a project or just chat about something, feel free to reach out!
+Feel free to reach out if you'd like to collaborate on a project or just chat about something.
 Dillon.Cogburn@arkadelphiaschools.org
+Tamotos.com@gmail.com
+AndYourName123@gmail.com
