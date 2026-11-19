@@ -1,0 +1,389 @@
+(() => {
+  const existing = document.getElementById('blooket-prank-menu');
+  if (existing) existing.remove();
+
+  const menu = document.createElement('div');
+  menu.id = 'blooket-prank-menu';
+  Object.assign(menu.style, {
+    position: 'fixed', top: '20px', left: '20px',
+    width: '52vw', height: '42vh', minWidth: '540px', minHeight: '240px',
+    backgroundColor: '#1e1e2e', border: '3px solid #313244', borderRadius: '14px',
+    boxShadow: '0 8px 0 #11111b, 0 14px 28px rgba(0,0,0,0.6)',
+    fontFamily: '"Nunito", "Segoe UI", sans-serif', color: '#cdd6f4',
+    zIndex: '999999', userSelect: 'none', display: 'flex', flexDirection: 'column', overflow: 'hidden'
+  });
+
+  const header = document.createElement('div');
+  Object.assign(header.style, {
+    backgroundColor: '#181825', padding: '10px 14px', display: 'flex',
+    justifyContent: 'space-between', alignItems: 'center', cursor: 'grab',
+    fontWeight: '800', fontSize: '16px', borderBottom: '2px solid #313244', color: '#fff', flexShrink: '0'
+  });
+  header.innerHTML = `<span>🌙 Blooket Troll UI (Landscape)</span>`;
+
+  const controls = document.createElement('div');
+  const minBtn = document.createElement('button'); minBtn.textContent = '—';
+  const closeBtn = document.createElement('button'); closeBtn.textContent = '✕';
+  [minBtn, closeBtn].forEach(b => Object.assign(b.style, {
+    background: '#313244', border: '1px solid #45475a', borderRadius: '6px',
+    color: '#cdd6f4', fontWeight: 'bold', cursor: 'pointer', marginLeft: '6px', padding: '2px 8px'
+  }));
+  controls.append(minBtn, closeBtn);
+  header.appendChild(controls);
+
+  const body = document.createElement('div');
+  body.id = 'blooket-menu-body';
+  Object.assign(body.style, {
+    padding: '12px', display: 'flex', flexDirection: 'row', alignItems: 'stretch',
+    gap: '12px', flex: '1', overflowX: 'auto', overflowY: 'hidden'
+  });
+
+  let activeCol = body;
+
+  window._trollUI = {
+    addSection: (title) => {
+      const col = document.createElement('div');
+      Object.assign(col.style, {
+        flex: '1', minWidth: '155px', display: 'flex', flexDirection: 'column',
+        gap: '8px', backgroundColor: '#181825', padding: '8px',
+        borderRadius: '10px', border: '1px solid #313244', overflowY: 'auto'
+      });
+      const l = document.createElement('div');
+      l.textContent = title;
+      Object.assign(l.style, {
+        fontSize: '11px', fontWeight: '900', letterSpacing: '1.2px',
+        textTransform: 'uppercase', backgroundColor: '#11111b', color: '#89b4fa',
+        padding: '4px 6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #313244'
+      });
+      col.appendChild(l);
+      body.appendChild(col);
+      activeCol = col;
+    },
+    addBtn: (label, color, shadow, onClick) => {
+      const btn = document.createElement('button');
+      btn.textContent = label;
+      Object.assign(btn.style, {
+        backgroundColor: color, color: '#fff', border: 'none', borderRadius: '8px',
+        padding: '8px 10px', fontSize: '13px', fontWeight: '700', cursor: 'pointer',
+        boxShadow: `0 3px 0 ${shadow}`, transition: 'transform 0.1s', flexShrink: '0'
+      });
+      btn.onmousedown = () => btn.style.transform = 'translateY(2px)';
+      btn.onmouseup = () => btn.style.transform = 'translateY(0)';
+      btn.onclick = onClick;
+      activeCol.appendChild(btn);
+    }
+  };
+
+  window._trollUI.addSection('PRANKS');
+  window._trollUI.addBtn('⚠️ Fake Error', '#e74c3c', '#962d22', () => {
+    const ov = document.createElement('div');
+    Object.assign(ov.style, {
+      position: 'fixed', inset: '0', backgroundColor: 'rgba(0,0,0,0.8)',
+      display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '1000000'
+    });
+    ov.innerHTML = `<div style="background:#1e1e2e;color:#cdd6f4;padding:24px;border-radius:14px;width:340px;text-align:center;border:3px solid #e74c3c;font-family:sans-serif">
+      <div style="font-size:38px">🚨</div><h2 style="color:#f38ba8;margin:8px 0">Account Suspended</h2>
+      <p style="font-size:13px;color:#bac2de">Unusual token activity detected (Error: <b>BLK-994</b>).</p>
+      <button id="dismiss-err" style="width:100%;padding:10px;background:#313244;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer">Dismiss</button>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('#dismiss-err').onclick = () => ov.remove();
+  });
+
+  window._trollUI.addBtn('📉 Break Gravity', '#e67e22', '#9c5211', () => {
+    document.querySelectorAll('button, img, h1, h2, span').forEach(el => {
+      if (menu.contains(el)) return;
+      el.style.transition = 'transform 1.5s ease-in';
+      el.style.transform = `translateY(100vh) rotate(${(Math.random() - 0.5) * 90}deg)`;
+    });
+  });
+
+  window._trollUI.addSection('CHEATS');
+  window._trollUI.addBtn('💰 999,999,999 Tokens', '#27ae60', '#196f3d', () => {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) {
+      if (!menu.contains(n) && /^\d[\d,]*$/.test(n.nodeValue.trim())) n.nodeValue = '999,999,999';
+    }
+  });
+
+  let edit = false;
+  window._trollUI.addBtn('✏️ Edit Page Text', '#8e44ad', '#5b2c6f', () => {
+    edit = !edit;
+    document.body.contentEditable = edit;
+  });
+
+  window._trollUI.addBtn('👑 Fake Victory', '#2980b9', '#1a5276', () => {
+    const b = document.createElement('div');
+    b.textContent = '🏆 1ST PLACE WINNER! 🏆';
+    Object.assign(b.style, {
+      position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%,-50%)',
+      backgroundColor: '#f1c40f', color: '#1e1e2e', padding: '20px 36px', fontSize: '28px',
+      fontWeight: '900', borderRadius: '16px', border: '5px solid #f39c12', zIndex: '999998', cursor: 'pointer'
+    });
+    b.onclick = () => b.remove();
+    document.body.appendChild(b);
+  });
+
+  menu.append(header, body);
+  document.body.appendChild(menu);
+
+  let hidden = false, min = false, drag = false, ox, oy;
+  const keyFn = (e) => { if (document.body.contentEditable !== 'true' && e.key.toLowerCase() === 'h') { hidden = !hidden; menu.style.display = hidden ? 'none' : 'flex'; } };
+  document.addEventListener('keydown', keyFn);
+  minBtn.onclick = () => {
+    min = !min;
+    body.style.display = min ? 'none' : 'flex';
+    menu.style.height = min ? 'auto' : '42vh';
+    menu.style.minHeight = min ? '0' : '240px';
+    minBtn.textContent = min ? '+' : '—';
+  };
+  closeBtn.onclick = () => { document.body.contentEditable = 'false'; document.removeEventListener('keydown', keyFn); delete window._trollUI; menu.remove(); };
+  header.onmousedown = (e) => { if (e.target.tagName !== 'BUTTON') { drag = true; ox = e.clientX - menu.offsetLeft; oy = e.clientY - menu.offsetTop; } };
+  document.onmousemove = (e) => { if (drag) { menu.style.left = `${e.clientX - ox}px`; menu.style.top = `${e.clientY - oy}px`; } };
+  document.onmouseup = () => drag = false;
+})();
+(() => {
+  if (!window._trollUI) return alert('Run Part 1 first!');
+
+  // --- COLUMN 2: CHEATS (VISUAL PARODY) ---
+  window._trollUI.addSection('CHEATS');
+
+  window._trollUI.addBtn('💰 999,999,999 Tokens', '#27ae60', '#196f3d', () => {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) {
+      if (!document.getElementById('blooket-prank-menu').contains(n) && /^\d[\d,]*$/.test(n.nodeValue.trim())) n.nodeValue = '999,999,999';
+    }
+  });
+
+  let edit = false;
+  window._trollUI.addBtn('✏️ Edit Page Text', '#8e44ad', '#5b2c6f', () => {
+    edit = !edit;
+    document.body.contentEditable = edit;
+  });
+
+  window._trollUI.addBtn('👑 Fake 1st Place', '#2980b9', '#1a5276', () => {
+    const b = document.createElement('div');
+    b.textContent = '🏆 1ST PLACE WINNER! 🏆';
+    Object.assign(b.style, {
+      position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%,-50%)',
+      backgroundColor: '#f1c40f', color: '#1e1e2e', padding: '18px 32px', fontSize: '26px',
+      fontWeight: '900', borderRadius: '16px', border: '5px solid #f39c12', zIndex: '999998', cursor: 'pointer'
+    });
+    b.onclick = () => b.remove();
+    document.body.appendChild(b);
+  });
+
+  window._trollUI.addBtn('🌈 Rainbow RGB Page', '#16a085', '#0e6655', () => {
+    if (window._rgbIv) { clearInterval(window._rgbIv); window._rgbIv = null; document.body.style.filter = 'none'; return; }
+    let h = 0;
+    window._rgbIv = setInterval(() => { h = (h + 15) % 360; document.body.style.filter = `hue-rotate(${h}deg)`; }, 100);
+  });
+
+  // --- COLUMN 3: MINI-GAMES ---
+  window._trollUI.addSection('GAMES');
+
+  window._trollUI.addBtn('⚡ 5s Speed Clicker', '#00a8ff', '#006299', () => {
+    let clicks = 0, time = 5, started = false;
+    const m = document.createElement('div');
+    Object.assign(m.style, {
+      position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+      backgroundColor: '#1e1e2e', border: '3px solid #00a8ff', borderRadius: '14px',
+      padding: '18px', width: '250px', textAlign: 'center', zIndex: '1000001', color: '#fff', fontFamily: 'sans-serif'
+    });
+    m.innerHTML = `<h3 style="margin:0 0 6px">⚡ 5s Clicker</h3><p id="c-stat" style="font-size:12px;color:#a6adc8">Tap to start!</p>
+      <button id="c-tap" style="width:100%;padding:14px;font-size:15px;font-weight:bold;background:#27ae60;color:#fff;border:none;border-radius:8px;cursor:pointer">CLICK! (0)</button>
+      <button id="c-exit" style="width:100%;margin-top:8px;padding:7px;background:#313244;color:#fff;border:none;border-radius:8px;cursor:pointer">Close</button>`;
+    document.body.appendChild(m);
+    const tap = m.querySelector('#c-tap'), stat = m.querySelector('#c-stat');
+    tap.onclick = () => {
+      if (time <= 0) return;
+      if (!started) {
+        started = true;
+        const t = setInterval(() => {
+          time--; stat.textContent = `Time: ${time}s`;
+          if (time <= 0) { clearInterval(t); tap.disabled = true; stat.textContent = `Score: ${clicks} (${(clicks / 5).toFixed(1)} CPS)`; }
+        }, 1000);
+      }
+      clicks++; tap.textContent = `CLICK! (${clicks})`;
+    };
+    m.querySelector('#c-exit').onclick = () => m.remove();
+  });
+
+  window._trollUI.addBtn('🎯 Target Blaster', '#e84393', '#99265e', () => {
+    let score = 0, time = 15;
+    const hud = document.createElement('div');
+    Object.assign(hud.style, { position: 'fixed', top: '15px', right: '15px', backgroundColor: '#181825', border: '2px solid #e84393', color: '#fff', padding: '8px 14px', borderRadius: '10px', fontWeight: 'bold', zIndex: '1000001' });
+    hud.textContent = `🎯 Score: 0 | 15s`;
+    const target = document.createElement('div');
+    target.textContent = '👾';
+    Object.assign(target.style, { position: 'fixed', fontSize: '34px', cursor: 'pointer', zIndex: '1000001', userSelect: 'none' });
+    const move = () => { target.style.top = Math.random() * 80 + 10 + 'vh'; target.style.left = Math.random() * 80 + 10 + 'vw'; };
+    target.onclick = () => { score++; hud.textContent = `🎯 Score: ${score} | ${time}s`; move(); };
+    move(); document.body.append(hud, target);
+    const iv = setInterval(() => {
+      time--; hud.textContent = `🎯 Score: ${score} | ${time}s`;
+      if (time <= 0) { clearInterval(iv); target.remove(); hud.textContent = `🏁 Score: ${score}`; setTimeout(() => hud.remove(), 3000); }
+    }, 1000);
+  });
+})();
+(() => {
+  if (!window._trollUI) return alert('Run Part 1 first!');
+
+  // --- COLUMN 2: CHEATS (VISUAL PARODY) ---
+  window._trollUI.addSection('CHEATS');
+
+  window._trollUI.addBtn('💰 999,999,999 Tokens', '#27ae60', '#196f3d', () => {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) {
+      if (!document.getElementById('blooket-prank-menu').contains(n) && /^\d[\d,]*$/.test(n.nodeValue.trim())) n.nodeValue = '999,999,999';
+    }
+  });
+
+  let edit = false;
+  window._trollUI.addBtn('✏️ Edit Page Text', '#8e44ad', '#5b2c6f', () => {
+    edit = !edit;
+    document.body.contentEditable = edit;
+  });
+
+  window._trollUI.addBtn('👑 Fake 1st Place', '#2980b9', '#1a5276', () => {
+    const b = document.createElement('div');
+    b.textContent = '🏆 1ST PLACE WINNER! 🏆';
+    Object.assign(b.style, {
+      position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%,-50%)',
+      backgroundColor: '#f1c40f', color: '#1e1e2e', padding: '18px 32px', fontSize: '26px',
+      fontWeight: '900', borderRadius: '16px', border: '5px solid #f39c12', zIndex: '999998', cursor: 'pointer'
+    });
+    b.onclick = () => b.remove();
+    document.body.appendChild(b);
+  });
+
+  window._trollUI.addBtn('🌈 Rainbow RGB Page', '#16a085', '#0e6655', () => {
+    if (window._rgbIv) { clearInterval(window._rgbIv); window._rgbIv = null; document.body.style.filter = 'none'; return; }
+    let h = 0;
+    window._rgbIv = setInterval(() => { h = (h + 15) % 360; document.body.style.filter = `hue-rotate(${h}deg)`; }, 100);
+  });
+
+  // --- COLUMN 3: MINI-GAMES ---
+  window._trollUI.addSection('GAMES');
+
+  window._trollUI.addBtn('⚡ 5s Speed Clicker', '#00a8ff', '#006299', () => {
+    let clicks = 0, time = 5, started = false;
+    const m = document.createElement('div');
+    Object.assign(m.style, {
+      position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+      backgroundColor: '#1e1e2e', border: '3px solid #00a8ff', borderRadius: '14px',
+      padding: '18px', width: '250px', textAlign: 'center', zIndex: '1000001', color: '#fff', fontFamily: 'sans-serif'
+    });
+    m.innerHTML = `<h3 style="margin:0 0 6px">⚡ 5s Clicker</h3><p id="c-stat" style="font-size:12px;color:#a6adc8">Tap to start!</p>
+      <button id="c-tap" style="width:100%;padding:14px;font-size:15px;font-weight:bold;background:#27ae60;color:#fff;border:none;border-radius:8px;cursor:pointer">CLICK! (0)</button>
+      <button id="c-exit" style="width:100%;margin-top:8px;padding:7px;background:#313244;color:#fff;border:none;border-radius:8px;cursor:pointer">Close</button>`;
+    document.body.appendChild(m);
+    const tap = m.querySelector('#c-tap'), stat = m.querySelector('#c-stat');
+    tap.onclick = () => {
+      if (time <= 0) return;
+      if (!started) {
+        started = true;
+        const t = setInterval(() => {
+          time--; stat.textContent = `Time: ${time}s`;
+          if (time <= 0) { clearInterval(t); tap.disabled = true; stat.textContent = `Score: ${clicks} (${(clicks / 5).toFixed(1)} CPS)`; }
+        }, 1000);
+      }
+      clicks++; tap.textContent = `CLICK! (${clicks})`;
+    };
+    m.querySelector('#c-exit').onclick = () => m.remove();
+  });
+
+  window._trollUI.addBtn('🎯 Target Blaster', '#e84393', '#99265e', () => {
+    let score = 0, time = 15;
+    const hud = document.createElement('div');
+    Object.assign(hud.style, { position: 'fixed', top: '15px', right: '15px', backgroundColor: '#181825', border: '2px solid #e84393', color: '#fff', padding: '8px 14px', borderRadius: '10px', fontWeight: 'bold', zIndex: '1000001' });
+    hud.textContent = `🎯 Score: 0 | 15s`;
+    const target = document.createElement('div');
+    target.textContent = '👾';
+    Object.assign(target.style, { position: 'fixed', fontSize: '34px', cursor: 'pointer', zIndex: '1000001', userSelect: 'none' });
+    const move = () => { target.style.top = Math.random() * 80 + 10 + 'vh'; target.style.left = Math.random() * 80 + 10 + 'vw'; };
+    target.onclick = () => { score++; hud.textContent = `🎯 Score: ${score} | ${time}s`; move(); };
+    move(); document.body.append(hud, target);
+    const iv = setInterval(() => {
+      time--; hud.textContent = `🎯 Score: ${score} | ${time}s`;
+      if (time <= 0) { clearInterval(iv); target.remove(); hud.textContent = `🏁 Score: ${score}`; setTimeout(() => hud.remove(), 3000); }
+    }, 1000);
+  });
+})();
+(() => {
+  if (!window._trollUI) return alert('Run Part 1 first!');
+
+  window._trollUI.addSection('APPS');
+
+  const localApps = {
+    '🐍 Snake (Iframe)': `<body style="margin:0;background:#11111b;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:sans-serif">
+      <div id="s" style="margin-bottom:6px;font-weight:bold">Score: 0 (Use Arrow Keys)</div>
+      <canvas id="c" width="300" height="300" style="border:2px solid #313244;background:#1e1e2e"></canvas>
+      <script>const c=document.getElementById('c'),x=c.getContext('2d');let sn=[{x:150,y:150}],dx=15,dy=0,fx=60,fy=60,sc=0;
+      onkeydown=e=>{if(e.key=='ArrowUp'&&dy==0){dx=0;dy=-15}if(e.key=='ArrowDown'&&dy==0){dx=0;dy=15}if(e.key=='ArrowLeft'&&dx==0){dx=-15;dy=0}if(e.key=='ArrowRight'&&dx==0){dx=15;dy=0}};
+      setInterval(()=>{let h={x:sn[0].x+dx,y:sn[0].y+dy};if(h.x<0||h.y<0||h.x>=300||h.y>=300||sn.some(p=>p.x==h.x&&p.y==h.y)){sn=[{x:150,y:150}];dx=15;dy=0;sc=0;document.getElementById('s').textContent='Score: 0';return}
+      sn.unshift(h);if(h.x==fx&&h.y==fy){sc++;document.getElementById('s').textContent='Score: '+sc;fx=Math.floor(Math.random()*20)*15;fy=Math.floor(Math.random()*20)*15}else sn.pop();
+      x.clearRect(0,0,300,300);x.fillStyle='#f38ba8';x.fillRect(fx,fy,14,14);x.fillStyle='#a6e3a1';sn.forEach(p=>x.fillRect(p.x,p.y,14,14))},110);</script></body>`,
+
+    '🎹 Synth Pad (Iframe)': `<body style="margin:0;background:#1e1e2e;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;height:100vh;box-sizing:border-box;font-family:sans-serif">
+      ${[261,293,329,349,392,440,493,523,587].map((f,i)=>`<button onclick="play(${f})" style="background:#313244;color:#89b4fa;border:2px solid #45475a;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer">Note ${i+1}</button>`).join('')}
+      <script>const ctx=new(window.AudioContext||window.webkitAudioContext)();function play(f){const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.value=f;o.connect(g);g.connect(ctx.destination);o.start();g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);o.stop(ctx.currentTime+0.4)}</script></body>`,
+
+    '🧮 Calculator (Iframe)': `<body style="margin:0;background:#1e1e2e;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;padding:10px;height:100vh;box-sizing:border-box">
+      <input id="d" readonly style="background:#11111b;color:#a6e3a1;border:1px solid #313244;padding:10px;font-size:20px;text-align:right;border-radius:6px;margin-bottom:8px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1">
+      ${['7','8','9','/','4','5','6','*','1','2','3','-','C','0','=','+'].map(b=>`<button onclick="press('${b}')" style="background:#313244;color:#fff;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer">${b}</button>`).join('')}</div>
+      <script>const d=document.getElementById('d');function press(v){if(v=='C')d.value='';else if(v=='='){try{d.value=Function('return '+d.value)()}catch{d.value='Err'}}else d.value+=v}</script></body>`,
+
+    '📝 Notepad (Iframe)': `<body style="margin:0;background:#1e1e2e;display:flex;height:100vh"><textarea placeholder="Type notes..." style="flex:1;background:#1e1e2e;color:#cdd6f4;border:none;padding:12px;font-size:14px;outline:none;resize:none"></textarea></body>`,
+
+    '🎨 Sketchpad (Iframe)': `<body style="margin:0;background:#11111b;overflow:hidden"><canvas id="c"></canvas><script>const c=document.getElementById('c'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;x.strokeStyle='#89b4fa';x.lineWidth=4;x.lineCap='round';let d=0;onmousedown=e=>{d=1;x.beginPath();x.moveTo(e.clientX,e.clientY)};onmousemove=e=>{if(d){x.lineTo(e.clientX,e.clientY);x.stroke()}};onmouseup=()=>d=0;</script></body>`
+  };
+
+  function openLocalFrame(title, htmlCode) {
+    const existing = document.getElementById('blooket-app-frame');
+    if (existing) existing.remove();
+    const win = document.createElement('div');
+    win.id = 'blooket-app-frame';
+    Object.assign(win.style, {
+      position: 'fixed', top: '60px', left: '300px', width: '420px', height: '380px',
+      backgroundColor: '#1e1e2e', border: '3px solid #313244', borderRadius: '12px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.75)', zIndex: '1000002',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'sans-serif', resize: 'both'
+    });
+    const bar = document.createElement('div');
+    Object.assign(bar.style, { backgroundColor: '#181825', color: '#fff', padding: '7px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'grab', fontWeight: 'bold', fontSize: '13px', borderBottom: '2px solid #313244' });
+    bar.innerHTML = `<span>${title}</span>`;
+    const closeBtn = document.createElement('button'); closeBtn.textContent = '✕';
+    Object.assign(closeBtn.style, { background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '6px', padding: '2px 8px', fontWeight: 'bold', cursor: 'pointer' });
+    closeBtn.onclick = () => win.remove();
+    bar.appendChild(closeBtn);
+    const iframe = document.createElement('iframe');
+    iframe.srcdoc = htmlCode;
+    Object.assign(iframe.style, { width: '100%', height: '100%', border: 'none' });
+    win.append(bar, iframe); document.body.appendChild(win);
+    let drag = false, ox, oy;
+    bar.onmousedown = (e) => { if (e.target.tagName !== 'BUTTON') { drag = true; ox = e.clientX - win.offsetLeft; oy = e.clientY - win.offsetTop; } };
+    document.addEventListener('mousemove', (e) => { if (drag) { win.style.left = `${e.clientX - ox}px`; win.style.top = `${e.clientY - oy}px`; } });
+    document.addEventListener('mouseup', () => drag = false);
+  }
+
+  // Add CSP-proof Iframe Apps
+  const colors = [['#2ecc71','#1e8449'],['#9b59b6','#6c3483'],['#f1c40f','#b7950b'],['#3498db','#21618c'],['#e67e22','#a04000']];
+  Object.keys(localApps).forEach((name, i) => {
+    window._trollUI.addBtn(name, colors[i][0], colors[i][1], () => openLocalFrame(name, localApps[name]));
+  });
+
+  // Pop-Out Web Apps (Bypasses CSP blocks)
+  [
+    { name: '🐱 Scratch (Popout)', url: 'https://mit.edu', c: '#f39c12', s: '#b9770e' },
+    { name: '▶️ YouTube (Popout)', url: 'https://youtube.com', c: '#e74c3c', s: '#962d22' },
+    { name: '🎧 Spotify (Popout)', url: 'https://spotify.com', c: '#1db954', s: '#14833b' },
+    { name: '📚 Lumos (Popout)', url: 'https://lumoslearning.com', c: '#2980b9', s: '#1a5276' }
+  ].forEach(app => {
+    window._trollUI.addBtn(app.name, app.c, app.s, () => window.open(app.url, app.name, 'width=900,height=600,menubar=no,toolbar=no'));
+  });
+})();
