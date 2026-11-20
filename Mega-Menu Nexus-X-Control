@@ -1,0 +1,536 @@
+window.DCMM = window.DCMM || {};
+window.astroActiveLanguage = 'javascript';
+window.astroRuntimes = {
+  javascript: function(code) {
+    try {
+      const originalLog = console.log;
+      let outputBuffer = [];
+      console.log = function(...args) {
+        outputBuffer.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+      };
+      const result = new Function(code)();
+      console.log = originalLog;
+      if (outputBuffer.length > 0) return outputBuffer.join('\n');
+      return result !== undefined ? '>>> Return: ' + result : '🚀 Script completed with no explicit return value.';
+    } catch (err) {
+      return '❌ JavaScript Error:\n' + err.message;
+    }
+  },
+  python: function(code) {
+    try {
+      let outputBuffer = [];
+      let localVariables = {};
+      const lines = code.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      if (lines.length === 0) return "🐍 Python Runtime: Empty Script Buffer.";
+
+      for (let line of lines) {
+        if (line.startsWith('#')) continue;
+        if (line.startsWith('print(') && line.endsWith(')')) {
+          let inner = line.substring(6, line.length - 1).trim();
+          if ((inner.startsWith('"') && inner.endsWith('"')) || (inner.startsWith("'") && inner.endsWith("'"))) {
+            outputBuffer.push(inner.substring(1, inner.length - 1));
+          } else {
+            try {
+              let safeExpression = inner;
+              for (let [vName, vVal] of Object.entries(localVariables)) {
+                safeExpression = safeExpression.split(vName).join(vVal);
+              }
+              outputBuffer.push(new Function('return (' + safeExpression + ')')());
+            } catch {
+              outputBuffer.push(localVariables[inner] !== undefined ? localVariables[inner] : "NameError: name '" + inner + "' is not defined");
+            }
+          }
+          continue;
+        }
+        if (line.includes('=')) {
+          let parts = line.split('=');
+          let varName = parts.trim();
+          let varExpr = parts.trim();
+          for (let [vName, vVal] of Object.entries(localVariables)) {
+            varExpr = varExpr.split(vName).join(vVal);
+          }
+          try { localVariables[varName] = new Function('return (' + varExpr + ')')(); }
+          catch { localVariables[varName] = varExpr.replace(/['"]/g, ""); }
+        }
+      }
+      return outputBuffer.length > 0 ? outputBuffer.join('\n') : '🐍 Python script completed successfully.\nLocal Scope: ' + JSON.stringify(localVariables);
+    } catch (err) {
+      return '❌ Python Micro-Parser Error:\n' + err.message;
+    }
+  },
+  webframe: function(code) {
+    try {
+      const previewId = 'astro-live-web-preview';
+      let container = document.getElementById(previewId);
+      if (container) container.remove();
+      container = document.createElement('div');
+      container.id = previewId;
+      container.style.cssText = 'position:fixed;top:120px;right:40px;width:300px;height:250px;background:#fff;color:#000;border:2px solid #38bdf8;border-radius:8px;z-index:2147483646;overflow:auto;box-shadow:0 10px 25px rgba(0,0,0,0.5);padding:10px;';
+      container.innerHTML = '<div style="font-family:sans-serif;font-size:10px;color:#64748b;border-bottom:1px solid #ddd;padding-bottom:4px;margin-bottom:8px;display:flex;justify-content:space-between;"><span>🌐 LIVE WINDOW PREVIEW</span><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:red;cursor:pointer;">✕</button></div>' + code;
+      document.body.appendChild(container);
+      return "🌐 HTML/CSS block deployed successfully to side viewport engine!";
+    } catch (err) {
+      return '❌ HTML Compiler Error:\n' + err.message;
+    }
+  },
+  bash: function(code) {
+    const cmd = code.trim().toLowerCase();
+    if (cmd === 'help') return "🐚 Available Commands:\n• ls           - List DOM element layers\n• sysinfo      - Read browser data\n• scrapelinks  - Grab all page links";
+    if (cmd === 'ls') return '📁 DOM Tree Nodes:\n• Title: ' + document.title + '\n• Div Elements: ' + document.getElementsByTagName('div').length + '\n• Links: ' + document.getElementsByTagName('a').length;
+    if (cmd === 'sysinfo') return '🖥️ Environment Profile:\n• Runtime: Browser Window Tab\n• Client: ' + navigator.userAgent;
+    if (cmd === 'scrapelinks') {
+      const elements = Array.from(document.querySelectorAll('a')).map(a => a.href).filter(h => h.startsWith('http')).slice(0, 10);
+      return '🔗 Scraped Links:\n' + (elements.length > 0 ? elements.join('\n') : 'No absolute HTTP links identified.');
+    }
+    return "🐚 bash: command not found: '" + code + "'. Type 'help' for options.";
+  }
+};
+console.log("✅ Part 1/6 Loaded: A.S.T.R.O. Runtimes ready.");
+window.launchAstroConsole = function() {
+  const oldRoot = document.getElementById('astro-console-root');
+  if (oldRoot) oldRoot.remove();
+
+  const root = document.createElement('div');
+  root.id = 'astro-console-root';
+  root.style.cssText = 'position:fixed;top:80px;left:80px;width:680px;height:520px;background:#0b0c14;color:#f1f5f9;border-radius:12px;box-shadow:0 30px 70px rgba(0,0,0,0.8);font-family:monospace;display:flex;flex-direction:column;z-index:2147483647;border:1px solid #1f2235;overflow:hidden;box-sizing:border-box;transition:width 0.2s, height 0.2s;';
+
+  root.innerHTML = `
+    <div id="astro-drag-bar" style="background:#121420;padding:14px 18px;border-bottom:1px solid #1f2235;display:flex;justify-content:space-between;align-items:center;cursor:move;user-select:none;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-weight:800;font-size:11px;letter-spacing:2px;color:#38bdf8;">🛰️ A.S.T.R.O // CONSOLE v3.0</span>
+        <span id="astro-status" style="font-size:10px;background:rgba(56,189,248,0.1);color:#38bdf8;padding:2px 6px;border-radius:4px;border:1px solid rgba(56,189,248,0.2);">JS_ENGINE</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button id="astro-maximize" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12px;">⬜</button>
+        <button id="astro-close" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;">✕</button>
+      </div>
+    </div>
+    <div style="background:#08090f;padding:10px 18px;border-bottom:1px solid #1f2235;display:flex;gap:8px;align-items:center;">
+      <button class="astro-lang-btn active" data-lang="javascript" style="background:#38bdf8;color:#000;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">JS</button>
+      <button class="astro-lang-btn" data-lang="python" style="background:#1e293b;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">Python</button>
+      <button class="astro-lang-btn" data-lang="webframe" style="background:#1e293b;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">HTML</button>
+      <button class="astro-lang-btn" data-lang="bash" style="background:#1e293b;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">Bash</button>
+      <div style="flex-grow:1;"></div>
+      <button id="astro-clear-panels" style="background:none;border:1px solid #2d3149;color:#64748b;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;">Clear</button>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;background:#040406;">
+      <textarea id="astro-code-input" spellcheck="false" style="flex:1;width:100%;background:transparent;color:#00ff88;border:none;outline:none;padding:16px;resize:none;box-sizing:border-box;font-family:monospace;font-size:13px;line-height:1.6;"></textarea>
+      <pre id="astro-console-output" style="flex:1;margin:0;padding:16px;background:#020203;border-top:1px solid #141622;overflow-y:auto;white-space:pre-wrap;word-break:break-all;font-size:12px;color:#cbd5e1;line-height:1.6;">✨ Sandbox Workspace Online. Drag title bar to move panel window.</pre>
+    </div>
+    <div style="background:#08090f;padding:12px 18px;border-top:1px solid #1f2235;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:10px;color:#475569;">Press Ctrl + Enter to run scripts</span>
+      <button id="astro-exec-trigger" style="background:#10b981;color:white;border:none;padding:8px 24px;border-radius:6px;font-weight:bold;font-size:12px;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.2);">RUN CODE ⚡</button>
+    </div>
+  `;
+
+  document.body.appendChild(root);
+
+  const inputArea = document.getElementById('astro-code-input');
+  const outputScreen = document.getElementById('astro-console-output');
+  const runBtn = document.getElementById('astro-exec-trigger');
+  const closeBtn = document.getElementById('astro-close');
+  const maxBtn = document.getElementById('astro-maximize');
+  const clearBtn = document.getElementById('astro-clear-panels');
+  const statusLabel = document.getElementById('astro-status');
+  const langButtons = document.querySelectorAll('.astro-lang-btn');
+
+  const boilerplates = {
+    javascript: 'console.log("Hello from Javascript environment!");\nreturn 50 * 50;',
+    python: '# Native sandbox python logic\nx = 12\ny = 8\nprint("Executing python offline:")\nprint(x * y)',
+    webframe: '<!-- HTML Content -->\n<div style="background:#1e293b;color:#38bdf8;padding:20px;border-radius:6px;text-align:center;">\n  <h1>A.S.T.R.O Live Node</h1>\n</div>',
+    bash: 'help'
+  };
+
+  langButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      langButtons.forEach(b => { b.style.background = '#1e293b'; b.style.color = '#94a3b8'; });
+      btn.style.background = '#38bdf8'; btn.style.color = '#000';
+      window.astroActiveLanguage = btn.getAttribute('data-lang');
+      statusLabel.innerText = window.astroActiveLanguage.toUpperCase() + "_ENGINE";
+      inputArea.value = boilerplates[window.astroActiveLanguage];
+    });
+  });
+
+  function compileAndExecute() {
+    const rawPayload = inputArea.value;
+    if (!rawPayload.trim()) return;
+    outputScreen.innerText = window.astroRuntimes[window.astroActiveLanguage](rawPayload);
+  }
+
+  let isMaximized = false;
+  maxBtn.addEventListener('click', () => {
+    isMaximized = !isMaximized;
+    if (isMaximized) {
+      root.style.top = '0px'; root.style.left = '0px'; root.style.width = '100vw'; root.style.height = '100vh';
+    } else {
+      root.style.top = '80px'; root.style.left = '80px'; root.style.width = '680px'; root.style.height = '520px';
+    }
+  });
+
+  runBtn.addEventListener('click', compileAndExecute);
+  inputArea.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); compileAndExecute(); }
+  });
+
+  clearBtn.addEventListener('click', () => { outputScreen.innerText = '⚙️ Terminal monitor cleared.'; });
+  closeBtn.addEventListener('click', () => {
+    const preview = document.getElementById('astro-live-web-preview');
+    if (preview) preview.remove();
+    root.remove();
+  });
+
+  const dragBar = document.getElementById('astro-drag-bar');
+  let draggingActive = false, originX, originY;
+  dragBar.addEventListener('mousedown', (e) => {
+    if (e.target.tagName === 'BUTTON' || isMaximized) return;
+    draggingActive = true; originX = e.clientX - root.offsetLeft; originY = e.clientY - root.offsetTop;
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (draggingActive && !isMaximized) { root.style.left = (e.clientX - originX) + 'px'; root.style.top = (e.clientY - originY) + 'px'; }
+  });
+  document.addEventListener('mouseup', () => { draggingActive = false; });
+  inputArea.value = boilerplates.javascript;
+};
+console.log("✅ Part 2/6 Loaded: A.S.T.R.O. UI Launcher ready.");
+window.DCMM.buildNexusMatrix = function() {
+  const coreDictionary = [
+    { intents: ["hi", "hello", "hey", "yo", "sup"], response: "👋 Hello there, human!" },
+    { intents: ["what's up", "whats up", "how's it going"], response: "🚀 Coasting through the DOM. What's on your mind?" },
+    { intents: ["who are you", "name", "identity"], response: "🤖 I am Nexus-Mega, a high-capacity local JS AI." }
+  ];
+
+  const massiveDatabase = [];
+  const subjectMatrices = [
+    { topic: "javascript", terms: ["js", "code", "script", "function", "variable", "array", "object", "loop"] },
+    { topic: "html", terms: ["tags", "div", "span", "layout", "button", "input", "form", "dom"] },
+    { topic: "css", terms: ["style", "color", "flexbox", "grid", "margin", "padding", "border", "design"] },
+    { topic: "math", terms: ["sum", "multiply", "divide", "subtract", "algebra", "calculus", "geometry", "numbers"] },
+    { topic: "science", terms: ["space", "gravity", "atoms", "elements", "energy", "physics", "planets", "stars"] },
+    { topic: "history", terms: ["timeline", "events", "past", "ancient", "civilization", "century", "war", "discovery"] }
+  ];
+  const questionTemplates = [
+    "tell me about [X]", "explain [X] to me", "what is [X]", "can you define [X]", 
+    "give me details on [X]", "how does [X] work", "why do we use [X]", "show me [X]"
+  ];
+
+  let totalDataLines = 0;
+  subjectMatrices.forEach(matrix => {
+    matrix.terms.forEach(term => {
+      questionTemplates.forEach(template => {
+        const questionText = template.replace("[X]", term);
+        const answerText = `📚 [Deep Knowledge Base Entry] This is synthetic data block #${totalDataLines + 1} processing the target term: "${term.toUpperCase()}" under the classification realm of "${matrix.topic.toUpperCase()}". It maps relationships to context templates.`;
+        massiveDatabase.push({ q: questionText, a: answerText });
+        totalDataLines += 2;
+      });
+    });
+  });
+
+  for (let i = massiveDatabase.length; i < 4350; i++) {
+    massiveDatabase.push({
+      q: `system question index code block entry reference alpha id ${i}`,
+      a: `System automated structural data line payload storage string node block sequence reference ${i}`
+    });
+    totalDataLines += 2;
+  }
+
+  const STORAGE_KEY = 'nexus_mega_advanced_memory';
+  let memoryStore = [];
+  try {
+    const historicalData = localStorage.getItem(STORAGE_KEY);
+    if (historicalData) memoryStore = JSON.parse(historicalData);
+  } catch (e) { console.error(e); }
+
+  window.nexusEngine = {
+    processText: function(rawInput) {
+      const normalized = rawInput.toLowerCase().replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()?]/g,"").trim();
+      if (normalized.startsWith("calc")) {
+        try {
+          const expression = rawInput.substring(5).trim();
+          const calculation = new Function(`return (${expression})`)();
+          return `🔢 Result: ${expression} = **${calculation}**`;
+        } catch { return "❌ Invalid expression."; }
+      }
+      for (let segment of memoryStore) {
+        if (normalized.includes(segment.q)) return segment.a;
+      }
+      for (let node of massiveDatabase) {
+        if (normalized.includes(node.q) || node.q.includes(normalized)) return node.a;
+      }
+      for (let branch of coreDictionary) {
+        for (let intent of branch.intents) {
+          if (normalized.includes(intent)) return branch.response;
+        }
+      }
+      return `🧠 Deep memory searched but concept unknown.\nTeach me using:\n\n**learn: your question -> your answer**`;
+    },
+    commitMemory: function(phraseQ, phraseA) {
+      if (!phraseQ || !phraseA) return '⚠️ Format required: learn: question -> answer';
+      memoryStore.unshift({ q: phraseQ.toLowerCase().trim(), a: phraseA.trim() });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryStore));
+      return `⚙️ Intelligence Matrix Updated!`;
+    },
+    purgeAllMemory: function() {
+      memoryStore = [];
+      localStorage.removeItem(STORAGE_KEY);
+      return "🗑️ Custom layers cleared.";
+    }
+  };
+
+  return totalDataLines;
+};
+console.log("✅ Part 3/6 Loaded: Nexus-Mega Brain Engine ready.");
+window.launchNexusAI = function() {
+  const totalDataLines = window.DCMM.buildNexusMatrix();
+  const legacyFrame = document.getElementById('nexus-ai-container');
+  if (legacyFrame) legacyFrame.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'nexus-ai-container';
+  panel.style.cssText = `
+    position: fixed; bottom: 30px; right: 30px; width: 360px; height: 480px;
+    background: #090a10; color: #f1f2f6; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    font-family: monospace; display: flex; flex-direction: column; z-index: 2147483647;
+    border: 1px solid #1f2335; overflow: hidden; box-sizing: border-box;
+  `;
+
+  panel.innerHTML = `
+    <div id="nexus-drag-bar" style="background: #131524; padding: 14px; font-weight: 700; font-size: 11px; border-bottom: 1px solid #1f2335; display: flex; justify-content: space-between; align-items: center; cursor: move; user-select: none; color: #41a5f5;">
+      <div>⚡ NEXUS // MEGA_MATRIX [${totalDataLines} DATA_LINES]</div>
+      <button id="nexus-close-btn" style="background:none; border:none; color:#f7768e; cursor:pointer; font-size:14px;">✕</button>
+    </div>
+    <div id="nexus-msg-panel" style="flex: 1; padding: 16px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 12px; background: #090a10;">
+      <div style="background: #131524; padding: 12px; border-radius: 8px; border: 1px solid #1f2335; color: #7aa2f7; line-height: 1.5;">
+        📊 <b>SYSTEM EXPANSION ACTIVE</b><br>
+        The AI has synthesized thousands of lines of procedural question-and-answer vectors inside your browser's execution stack.<br><br>
+        🧪 Try querying deep terms like:<br>
+        • <i>"what is javascript"</i><br>
+        • <i>"explain flexbox to me"</i><br>
+        • <i>"tell me about gravity"</i>
+      </div>
+    </div>
+    <div style="padding: 12px; background: #131524; display: flex; gap: 8px; border-top: 1px solid #1f2235;">
+      <input id="nexus-input" type="text" placeholder="Query the matrix system..." style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #1f2335; background: #090a10; color: #00ff88; font-size: 12px; outline: none; font-family: monospace;">
+      <button id="nexus-send" style="background: #41a5f5; color: #090a10; border: none; padding: 0 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px;">EXEC</button>
+    </div>
+  `;
+
+  document.body.appendChild(panel);
+
+  const dragBar = document.getElementById('nexus-drag-bar');
+  let isDragging = false, initialX, initialY;
+  dragBar.addEventListener('mousedown', (e) => {
+    if (e.target.tagName === 'BUTTON') return;
+    isDragging = true; initialX = e.clientX - panel.offsetLeft; initialY = e.clientY - panel.offsetTop;
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      panel.style.left = `${e.clientX - initialX}px`; panel.style.top = `${e.clientY - initialY}px`;
+      panel.style.bottom = 'auto'; panel.style.right = 'auto';
+    }
+  });
+  document.addEventListener('mouseup', () => isDragging = false);
+
+  const msgPanel = document.getElementById('nexus-msg-panel');
+  const inputEl = document.getElementById('nexus-input');
+  const sendBtn = document.getElementById('nexus-send');
+  const closeBtn = document.getElementById('nexus-close-btn');
+
+  function pushRenderedMessage(messageText, flagAsUser = false) {
+    const node = document.createElement('div');
+    node.style.cssText = `
+      padding: 10px 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; white-space: pre-line;
+      background: ${flagAsUser ? '#1f2335' : '#131524'};
+      color: ${flagAsUser ? '#00ff88' : '#cbd5e1'};
+      align-self: ${flagAsUser ? 'flex-end' : 'flex-start'};
+      border: 1px solid ${flagAsUser ? '#41a5f5' : '#1f2335'};
+    `;
+    node.innerText = messageText;
+    msgPanel.appendChild(node);
+    msgPanel.scrollTop = msgPanel.scrollHeight;
+  }
+
+  function handleExecution() {
+    const query = inputEl.value.trim();
+    if (!query) return;
+    pushRenderedMessage(query, true);
+    inputEl.value = '';
+
+    if (query.toLowerCase().startsWith('learn:')) {
+      const innerExpression = query.substring(6);
+      const crossSplit = innerExpression.split('->');
+      if (crossSplit.length === 2) {
+        const feedback = window.nexusEngine.commitMemory(crossSplit, crossSplit);
+        setTimeout(() => pushRenderedMessage(feedback, false), 200);
+      }
+    } else {
+      const evaluation = window.nexusEngine.processText(query);
+      setTimeout(() => pushRenderedMessage(evaluation, false), 200);
+    }
+  }
+
+  sendBtn.addEventListener('click', handleExecution);
+  inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleExecution(); });
+  closeBtn.addEventListener('click', () => panel.remove());
+};
+console.log("✅ Part 4/6 Loaded: Nexus-Mega AI UI Launcher ready.");
+window.DCMM.STORAGE_KEY = 'dcmm_custom_stuff_v5';
+window.DCMM.defaultData = [
+  {
+    category: "My Custom Tools",
+    items: [
+      { name: "🛰️ A.S.T.R.O. Console v3.0", desc: "Multi-language JS/Py/HTML/Bash HUD", code: "window.launchAstroConsole()" },
+      { name: "⚡ Nexus-Mega AI", desc: "8,700-line procedural matrix & trainable AI", code: "window.launchNexusAI()" }
+    ]
+  },
+  {
+    category: "Dev & Docs",
+    items: [
+      { name: "GitHub", desc: "Repos & Pull Requests", url: "https://github.com" },
+      { name: "Localhost :3000", desc: "Frontend dev server", url: "http://localhost:3000" },
+      { name: "Can I Use", desc: "Browser support tables", url: "https://caniuse.com" }
+    ]
+  },
+  {
+    category: "DOM & CSS Debuggers",
+    items: [
+      { name: "X-Ray Outlines", desc: "Highlight every element", code: "document.querySelectorAll('*').forEach(e => e.style.outline = e.style.outline ? '' : '1px solid #f43f5e')" },
+      { name: "Edit Page Text", desc: "Toggle designMode", code: "document.designMode = document.designMode === 'on' ? 'off' : 'on'; alert('Design mode: ' + document.designMode)" },
+      { name: "Unlock Right-Click", desc: "Bypass contextmenu blocks", code: "document.oncontextmenu = null; window.addEventListener('contextmenu', e => e.stopPropagation(), true); alert('Right-click unlocked!')" }
+    ]
+  },
+  {
+    category: "Data & Network",
+    items: [
+      { name: "Dump All Links", desc: "Log table of <a> tags", code: "console.table([...document.querySelectorAll('a')].map(a => ({ text: a.innerText.trim().slice(0,30), href: a.href })))" },
+      { name: "Wipe Site Storage", desc: "Clear local & session data", code: "localStorage.clear(); sessionStorage.clear(); alert('Local & Session storage wiped!')" }
+    ]
+  }
+];
+window.DCMM.menuData = JSON.parse(localStorage.getItem(window.DCMM.STORAGE_KEY)) || JSON.parse(JSON.stringify(window.DCMM.defaultData));
+window.DCMM.saveData = () => localStorage.setItem(window.DCMM.STORAGE_KEY, JSON.stringify(window.DCMM.menuData));
+console.log("✅ Part 5/6 Loaded: Mega Menu data & storage ready.");
+(() => {
+  const existing = document.getElementById('dev-console-mega-menu');
+  if (existing) existing.remove();
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #dev-console-mega-menu { position: fixed; top: 0; left: 0; width: 100%; z-index: 2147483647; font-family: system-ui, -apple-system, sans-serif; color: #f8fafc; }
+    #dcmm-bar { background: #0f172a; border-bottom: 1px solid #334155; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .dcmm-btn { background: #3b82f6; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer; font-size: 13px; }
+    .dcmm-btn:hover { background: #2563eb; }
+    .dcmm-btn-astro { background: #0284c7; border: 1px solid #38bdf8; }
+    .dcmm-btn-astro:hover { background: #0369a1; }
+    .dcmm-btn-nexus { background: #4f46e5; border: 1px solid #818cf8; }
+    .dcmm-btn-nexus:hover { background: #4338ca; }
+    .dcmm-btn-sec { background: #334155; }
+    .dcmm-btn-sec:hover { background: #475569; }
+    #dcmm-panel { display: none; background: #1e293b; border-bottom: 2px solid #3b82f6; padding: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); max-height: 80vh; overflow-y: auto; }
+    #dcmm-panel.open { display: grid; }
+    .dcmm-col h4 { margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+    .dcmm-item { position: relative; display: block; padding: 8px 28px 8px 8px; border-radius: 6px; text-decoration: none; color: inherit; cursor: pointer; transition: background 0.15s; }
+    .dcmm-item:hover { background: #334155; }
+    .dcmm-item-title { font-weight: 600; font-size: 14px; color: #f1f5f9; }
+    .dcmm-item-desc { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+    .dcmm-del { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 12px; }
+    .dcmm-del:hover { color: #ef4444; }
+    #dcmm-modal { display: none; background: #0f172a; padding: 16px; border-bottom: 1px solid #334155; gap: 10px; flex-wrap: wrap; align-items: center; }
+    #dcmm-modal.open { display: flex; }
+    #dcmm-modal input, #dcmm-modal select { background: #1e293b; border: 1px solid #475569; color: white; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+  `;
+
+  const container = document.createElement('div');
+  container.id = 'dev-console-mega-menu';
+  container.appendChild(style);
+
+  const bar = document.createElement('div');
+  bar.id = 'dcmm-bar';
+  bar.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <button id="dcmm-toggle" class="dcmm-btn">☰ Mega Menu</button>
+      <button id="dcmm-quick-astro" class="dcmm-btn dcmm-btn-astro">🛰️ A.S.T.R.O.</button>
+      <button id="dcmm-quick-nexus" class="dcmm-btn dcmm-btn-nexus">⚡ Nexus-Mega AI</button>
+      <button id="dcmm-add-toggle" class="dcmm-btn dcmm-btn-sec">+ Add Stuff</button>
+      <button id="dcmm-reset" class="dcmm-btn dcmm-btn-sec" title="Restore defaults">↺ Reset</button>
+    </div>
+    <button id="dcmm-close" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px;">✕</button>
+  `;
+
+  const modal = document.createElement('div');
+  modal.id = 'dcmm-modal';
+  modal.innerHTML = `
+    <input id="dcmm-in-cat" placeholder="Category (e.g. My Links)" value="My Custom Tools" style="width:140px;" />
+    <input id="dcmm-in-name" placeholder="Title (e.g. Jira Board)" style="width:150px;" />
+    <input id="dcmm-in-desc" placeholder="Short description" style="width:160px;" />
+    <select id="dcmm-in-type"><option value="url">URL Link</option><option value="code">JS Snippet</option></select>
+    <input id="dcmm-in-val" placeholder="https://... or JS code" style="flex:1;min-width:200px;" />
+    <button id="dcmm-save-btn" class="dcmm-btn">Save Item</button>
+  `;
+
+  const panel = document.createElement('div');
+  panel.id = 'dcmm-panel';
+
+  const renderPanel = () => {
+    panel.innerHTML = '';
+    window.DCMM.menuData.forEach((col, cIdx) => {
+      const colDiv = document.createElement('div');
+      colDiv.className = 'dcmm-col';
+      colDiv.innerHTML = `<h4>${col.category}</h4>`;
+      col.items.forEach((item, iIdx) => {
+        const el = document.createElement(item.url ? 'a' : 'div');
+        el.className = 'dcmm-item';
+        if (item.url) { el.href = item.url; el.target = '_blank'; }
+        else if (item.code) {
+          el.onclick = (e) => {
+            if (e.target.classList.contains('dcmm-del')) return;
+            try { new Function(item.code)(); } catch (err) { console.error(err); }
+            panel.classList.remove('open');
+          };
+        }
+        el.innerHTML = `<div class="dcmm-item-title">${item.name}</div><div class="dcmm-item-desc">${item.desc || ''}</div><button class="dcmm-del" title="Delete">✕</button>`;
+        el.querySelector('.dcmm-del').onclick = (e) => {
+          e.preventDefault(); e.stopPropagation();
+          window.DCMM.menuData[cIdx].items.splice(iIdx, 1);
+          if (window.DCMM.menuData[cIdx].items.length === 0) window.DCMM.menuData.splice(cIdx, 1);
+          window.DCMM.saveData(); renderPanel();
+        };
+        colDiv.appendChild(el);
+      });
+      panel.appendChild(colDiv);
+    });
+  };
+
+  renderPanel();
+  container.append(bar, modal, panel);
+  document.body.appendChild(container);
+
+  document.getElementById('dcmm-toggle').onclick = () => panel.classList.toggle('open');
+  document.getElementById('dcmm-quick-astro').onclick = () => window.launchAstroConsole();
+  document.getElementById('dcmm-quick-nexus').onclick = () => window.launchNexusAI();
+  document.getElementById('dcmm-add-toggle').onclick = () => { modal.classList.toggle('open'); panel.classList.add('open'); };
+  document.getElementById('dcmm-close').onclick = () => container.remove();
+  document.getElementById('dcmm-reset').onclick = () => {
+    if (confirm('Reset menu to default starter pack?')) {
+      localStorage.removeItem(window.DCMM.STORAGE_KEY);
+      window.DCMM.menuData = JSON.parse(JSON.stringify(window.DCMM.defaultData));
+      renderPanel();
+    }
+  };
+  document.getElementById('dcmm-save-btn').onclick = () => {
+    const cat = document.getElementById('dcmm-in-cat').value.trim() || 'My Custom Tools';
+    const name = document.getElementById('dcmm-in-name').value.trim();
+    const desc = document.getElementById('dcmm-in-desc').value.trim();
+    const type = document.getElementById('dcmm-in-type').value;
+    const val = document.getElementById('dcmm-in-val').value.trim();
+    if (!name || !val) return alert('Please enter a Title and a URL/Code.');
+    const newItem = { name, desc }; newItem[type] = val;
+    let targetCol = window.DCMM.menuData.find(c => c.category.toLowerCase() === cat.toLowerCase());
+    if (!targetCol) { targetCol = { category: cat, items: [] }; window.DCMM.menuData.push(targetCol); }
+    targetCol.items.push(newItem);
+    window.DCMM.saveData(); renderPanel();
+    document.getElementById('dcmm-in-name').value = '';
+    document.getElementById('dcmm-in-desc').value = '';
+    document.getElementById('dcmm-in-val').value = '';
+  };
+  console.log("🚀 Part 6/6 Loaded: Mega Menu Online with A.S.T.R.O. & Nexus-Mega AI!");
+})();
