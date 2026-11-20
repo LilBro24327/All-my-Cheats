@@ -1,0 +1,492 @@
+(() => {
+  document.getElementById('fnaf-root')?.remove();
+  document.getElementById('fnaf-style')?.remove();
+
+  const style = document.createElement('style');
+  style.id = 'fnaf-style';
+  style.textContent = `
+    #fnaf-root { position:fixed; inset:0; background:#050505; color:#fff; font-family:'Courier New',monospace; z-index:999999; user-select:none; overflow:hidden; }
+    #fnaf-static { position:absolute; inset:0; width:100%; height:100%; opacity:0.12; pointer-events:none; z-index:10; }
+    .fnaf-scan { position:absolute; inset:0; background:linear-gradient(rgba(18,16,16,0) 50%,rgba(0,0,0,0.45) 50%); background-size:100% 4px; pointer-events:none; z-index:11; }
+    .fnaf-exit { position:absolute; top:15px; right:20px; z-index:50; background:#111; border:1px solid #555; color:#aaa; font-family:inherit; padding:4px 10px; cursor:pointer; }
+    #fnaf-menu { position:relative; z-index:5; display:flex; flex-direction:column; justify-content:space-between; height:100%; padding:50px 80px; box-sizing:border-box; }
+    .fnaf-title { font-size:44px; line-height:1.12; font-weight:normal; margin:0; }
+    .fnaf-nav { display:flex; flex-direction:column; gap:12px; margin-bottom:25px; }
+    .fnaf-opt { font-size:26px; cursor:pointer; display:flex; align-items:center; width:fit-content; }
+    .fnaf-opt.locked { color:#444; cursor:not-allowed; }
+    .fnaf-arrow { width:40px; opacity:0; font-weight:bold; }
+    .fnaf-opt:not(.locked):hover .fnaf-arrow, .fnaf-opt.active .fnaf-arrow { opacity:1; }
+    #fnaf-office { display:none; position:relative; width:100%; height:100%; background:radial-gradient(circle,#222 0%,#080808 85%); }
+    .hud-top { position:absolute; top:20px; right:140px; text-align:right; z-index:20; }
+    .hud-bot { position:absolute; bottom:25px; left:30px; z-index:20; font-size:20px; line-height:1.4; }
+    .u-bars { display:inline-flex; gap:4px; vertical-align:middle; margin-left:6px; }
+    .u-bar { width:12px; height:20px; background:#222; border:1px solid #555; }
+    .u-bar.on-1,.u-bar.on-2 { background:#3c3; } .u-bar.on-3 { background:#cc3; } .u-bar.on-4,.u-bar.on-5 { background:#c33; }
+    .door-frame { position:absolute; top:12%; width:175px; height:72%; background:#030303; border:6px solid #2a2a2a; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    .door-left { left:90px; } .door-right { right:90px; }
+    .shutter { position:absolute; top:-100%; left:0; width:100%; height:100%; background:repeating-linear-gradient(0deg,#3a3a3a,#3a3a3a 18px,#1f1f1f 20px); border-bottom:8px solid #555; transition:top 0.16s ease-in; z-index:4; }
+    .shutter.closed { top:0; }
+    .light-bg { position:absolute; inset:0; background:radial-gradient(circle,rgba(255,245,200,0.35) 0%,transparent 80%); opacity:0; z-index:2; }
+    .light-bg.lit { opacity:1; }
+    .anim-door { width:145px; height:175px; z-index:3; opacity:0; filter:drop-shadow(0 0 12px #000); }
+    .light-bg.lit + .anim-door.present { opacity:1; }
+    .ctrls { position:absolute; top:42%; display:flex; flex-direction:column; gap:12px; z-index:15; }
+    .ctrl-l { left:20px; } .ctrl-r { right:20px; }
+    .c-btn { width:52px; height:52px; border:2px solid #555; background:#1a1a1a; color:#fff; font-family:inherit; font-size:11px; font-weight:bold; cursor:pointer; }
+    .c-btn.d-on { background:#a22; border-color:#f55; } .c-btn.l-on { background:#aa3; border-color:#ff6; color:#000; }
+    .desk { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:46%; height:24%; background:#181818; border-top:6px solid #333; display:flex; justify-content:center; align-items:center; color:#555; font-size:14px; }
+    #gf-office { display:none; position:absolute; bottom:22%; left:50%; transform:translateX(-50%); width:210px; height:240px; z-index:18; filter:drop-shadow(0 0 20px #000); }
+    #cam-bar { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); width:380px; height:36px; background:rgba(255,255,255,0.12); border:2px solid #888; color:#fff; font-family:inherit; font-size:16px; cursor:pointer; z-index:30; }
+    #fnaf-cams { display:none; position:absolute; inset:0; background:#0a0c0a; z-index:25; padding:30px; box-sizing:border-box; }
+    .cam-box { width:100%; height:100%; border:2px solid #666; position:relative; display:flex; flex-direction:column; justify-content:space-between; padding:20px; box-sizing:border-box; }
+    #c-occ { display:flex; gap:20px; justify-content:center; align-items:center; min-height:190px; font-size:26px; }
+    #c-occ svg { width:150px; height:180px; filter:contrast(1.25) brightness(0.85); }
+    .cam-map { position:absolute; bottom:55px; right:25px; width:310px; height:235px; background:rgba(0,0,0,0.85); border:1px solid #555; }
+    .cam-btn { position:absolute; background:#181818; border:1px solid #888; color:#fff; font-family:inherit; font-size:11px; padding:4px 6px; cursor:pointer; }
+    .cam-btn.sel { background:#5b6; color:#000; font-weight:bold; }
+    .you-box { position:absolute; bottom:10px; left:125px; border:1px solid #666; padding:2px 8px; font-size:10px; color:#888; }
+    #fnaf-end { display:none; position:absolute; inset:0; background:#000; z-index:40; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+    @keyframes shake { 0%,100%{transform:translate(0,0) scale(1)} 25%{transform:translate(-8px,6px) scale(1.1)} 75%{transform:translate(8px,-6px) scale(1.15)} }
+    .jumpscare-anim svg { width:260px; height:300px; animation:shake 0.12s infinite; }
+  `;
+  document.head.appendChild(style);
+  console.log('%c[Part 1/7 Loaded] Paste Part 2 next!', 'color:#0f0;font-weight:bold;');
+})();(() => {
+  window.FNAF_MODELS = {
+    freddy: `<svg viewBox="0 0 120 140">
+      <defs><radialGradient id="fg" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#8c5830"/><stop offset="100%" stop-color="#4a2c14"/></radialGradient></defs>
+      <rect x="44" y="4" width="32" height="18" rx="2" fill="#141414"/><rect x="44" y="16" width="32" height="4" fill="#611"/><rect x="36" y="20" width="48" height="5" rx="2" fill="#1a1a1a"/>
+      <circle cx="26" cy="34" r="12" fill="#4a2c14"/><circle cx="26" cy="34" r="6" fill="#7a4c28"/>
+      <circle cx="94" cy="34" r="12" fill="#4a2c14"/><circle cx="94" cy="34" r="6" fill="#7a4c28"/>
+      <rect x="28" y="26" width="64" height="68" rx="18" fill="url(#fg)" stroke="#2b180a" stroke-width="2"/>
+      <rect x="36" y="38" width="18" height="4" fill="#111"/><rect x="66" y="38" width="18" height="4" fill="#111"/>
+      <circle cx="45" cy="49" r="9" fill="#0d0d0d"/><circle cx="75" cy="49" r="9" fill="#0d0d0d"/>
+      <circle cx="45" cy="49" r="4.5" fill="#28f"/><circle cx="75" cy="49" r="4.5" fill="#28f"/>
+      <circle cx="46" cy="48" r="1.8" fill="#fff"/><circle cx="76" cy="48" r="1.8" fill="#fff"/>
+      <ellipse cx="60" cy="68" rx="25" ry="17" fill="#a8754c"/>
+      <circle cx="46" cy="66" r="1.5" fill="#321"/><circle cx="51" cy="70" r="1.5" fill="#321"/><circle cx="74" cy="66" r="1.5" fill="#321"/><circle cx="69" cy="70" r="1.5" fill="#321"/>
+      <path d="M52 58 Q60 54 68 58 Q64 65 60 65 Q56 65 52 58 Z" fill="#111"/>
+      <rect x="38" y="78" width="44" height="12" rx="4" fill="#111"/>
+      <rect x="42" y="85" width="6" height="5" fill="#ddd"/><rect x="52" y="85" width="6" height="5" fill="#ddd"/><rect x="62" y="85" width="6" height="5" fill="#ddd"/><rect x="72" y="85" width="6" height="5" fill="#ddd"/>
+      <path d="M24 98 L96 98 L106 140 L14 140 Z" fill="url(#fg)"/><ellipse cx="60" cy="120" rx="24" ry="18" fill="#9c6b43"/>
+      <polygon points="60,100 46,93 46,107" fill="#111"/><polygon points="60,100 74,93 74,107" fill="#111"/><circle cx="60" cy="100" r="4" fill="#222"/>
+    </svg>`,
+
+    bonnie: `<svg viewBox="0 0 120 140">
+      <defs><radialGradient id="bg" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#5d63b0"/><stop offset="100%" stop-color="#2e3266"/></radialGradient></defs>
+      <rect x="34" y="2" width="15" height="36" rx="6" fill="#3c407d" stroke="#1e2042" stroke-width="2"/>
+      <rect x="38" y="7" width="7" height="25" rx="3" fill="#7c82cf"/>
+      <rect x="71" y="2" width="15" height="36" rx="6" fill="#3c407d" stroke="#1e2042" stroke-width="2"/>
+      <rect x="75" y="7" width="7" height="25" rx="3" fill="#7c82cf"/>
+      <rect x="28" y="34" width="64" height="64" rx="20" fill="url(#bg)" stroke="#1e2042" stroke-width="2"/>
+      <circle cx="45" cy="54" r="9" fill="#0d0d0d"/><circle cx="75" cy="54" r="9" fill="#0d0d0d"/>
+      <circle cx="45" cy="54" r="4.5" fill="#d25"/><circle cx="75" cy="54" r="4.5" fill="#d25"/>
+      <circle cx="46" cy="53" r="1.8" fill="#fff"/><circle cx="76" cy="53" r="1.8" fill="#fff"/>
+      <ellipse cx="60" cy="74" rx="26" ry="17" fill="#7c82cf"/>
+      <polygon points="60,64 53,70 67,70" fill="#181818"/>
+      <rect x="40" y="82" width="40" height="12" rx="4" fill="#111"/>
+      <rect x="47" y="82" width="8" height="6" fill="#eee"/><rect x="65" y="82" width="8" height="6" fill="#eee"/>
+      <rect x="45" y="89" width="6" height="5" fill="#ccc"/><rect x="57" y="89" width="6" height="5" fill="#ccc"/><rect x="69" y="89" width="6" height="5" fill="#ccc"/>
+      <path d="M24 102 L96 102 L106 140 L14 140 Z" fill="url(#bg)"/><ellipse cx="60" cy="122" rx="24" ry="16" fill="#7c82cf"/>
+      <polygon points="60,104 44,96 44,112" fill="#b22"/><polygon points="60,104 76,96 76,112" fill="#b22"/><circle cx="60" cy="104" r="4" fill="#811"/>
+    </svg>`,
+
+    chica: `<svg viewBox="0 0 120 140">
+      <defs><radialGradient id="cg" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#ebd038"/><stop offset="100%" stop-color="#9e8716"/></radialGradient></defs>
+      <polygon points="52,24 46,8 58,20" fill="#d4b82a"/><polygon points="60,22 60,4 66,22" fill="#ebd038"/><polygon points="68,24 74,10 64,22" fill="#d4b82a"/>
+      <rect x="30" y="24" width="60" height="66" rx="24" fill="url(#cg)" stroke="#6e5c0c" stroke-width="2"/>
+      <rect x="37" y="38" width="16" height="3" fill="#222"/><rect x="67" y="38" width="16" height="3" fill="#222"/>
+      <circle cx="45" cy="49" r="9" fill="#0d0d0d"/><circle cx="75" cy="49" r="9" fill="#0d0d0d"/>
+      <circle cx="45" cy="49" r="4.5" fill="#b3e"/><circle cx="75" cy="49" r="4.5" fill="#b3e"/>
+      <circle cx="46" cy="48" r="1.8" fill="#fff"/><circle cx="76" cy="48" r="1.8" fill="#fff"/>
+      <polygon points="44,62 76,62 60,76" fill="#eb831c" stroke="#944d08" stroke-width="1.5"/>
+      <polygon points="47,74 73,74 60,86" fill="#c96b10"/>
+      <rect x="49" y="73" width="22" height="5" fill="#111"/><rect x="52" y="74" width="4" height="3" fill="#ddd"/><rect x="64" y="74" width="4" height="3" fill="#ddd"/>
+      <path d="M22 94 L98 94 L108 140 L12 140 Z" fill="url(#cg)"/>
+      <path d="M34 94 L86 94 L80 132 L40 132 Z" fill="#f0f0f0" stroke="#999" stroke-width="1.5"/>
+      <text x="60" y="112" font-size="11" font-weight="bold" fill="#d22" text-anchor="middle">LET'S</text>
+      <text x="60" y="125" font-size="12" font-weight="bold" fill="#d22" text-anchor="middle">EAT!!!</text>
+    </svg>`
+  };
+  console.log('%c[Part 2/7 Loaded] Paste Part 3 next!', 'color:#0f0;font-weight:bold;');
+})();
+(() => {
+  Object.assign(window.FNAF_MODELS, {
+    foxy: `<svg viewBox="0 0 120 140">
+      <defs><radialGradient id="xg" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#bd3f2f"/><stop offset="100%" stop-color="#6b1d13"/></radialGradient></defs>
+      <polygon points="26,30 16,6 42,22" fill="#8f291c"/><polygon points="28,26 22,12 37,22" fill="#d97b6c"/>
+      <polygon points="94,30 104,6 78,22" fill="#8f291c"/><polygon points="92,26 98,12 83,22" fill="#d97b6c"/>
+      <polygon points="28,30 60,20 92,30 100,68 60,88 20,68" fill="url(#xg)" stroke="#47110a" stroke-width="2"/>
+      <polygon points="20,68 12,74 26,76" fill="#8f291c"/><polygon points="100,68 108,74 94,76" fill="#8f291c"/>
+      <circle cx="44" cy="50" r="9" fill="#0d0d0d"/><circle cx="44" cy="50" r="4.5" fill="#eb0"/><circle cx="45" cy="49" r="1.8" fill="#fff"/>
+      <rect x="66" y="41" width="18" height="16" rx="4" fill="#111"/><line x1="56" y1="36" x2="92" y2="54" stroke="#111" stroke-width="3.5"/>
+      <ellipse cx="60" cy="70" rx="18" ry="12" fill="#d98a7c"/><polygon points="55,62 65,62 60,68" fill="#111"/>
+      <rect x="44" y="76" width="32" height="10" rx="3" fill="#111"/>
+      <polygon points="46,76 49,83 52,76" fill="#eee"/><polygon points="68,76 71,83 74,76" fill="#eee"/>
+      <polygon points="50,86 53,79 56,86" fill="#ddd"/><polygon points="64,86 67,79 70,86" fill="#ddd"/>
+      <path d="M26 92 L94 92 L102 140 L18 140 Z" fill="#7a2419"/>
+      <path d="M42 92 L78 92 L72 140 L48 140 Z" fill="#222"/><circle cx="60" cy="112" r="6" fill="#444"/>
+    </svg>`,
+
+    golden: `<svg viewBox="0 0 120 140">
+      <defs><radialGradient id="gg" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#d4af37"/><stop offset="100%" stop-color="#6e5711"/></radialGradient></defs>
+      <g transform="rotate(-8 60 70)">
+        <rect x="44" y="4" width="32" height="18" rx="2" fill="#111"/><rect x="36" y="20" width="48" height="5" rx="2" fill="#181818"/>
+        <circle cx="26" cy="34" r="12" fill="#7d6414"/><circle cx="94" cy="34" r="12" fill="#7d6414"/>
+        <rect x="28" y="26" width="64" height="68" rx="18" fill="url(#gg)" stroke="#3d2f06" stroke-width="2"/>
+        <circle cx="45" cy="49" r="9.5" fill="#050505"/><circle cx="75" cy="49" r="9.5" fill="#050505"/>
+        <circle cx="45" cy="49" r="1.5" fill="#fff" opacity="0.7"/><circle cx="75" cy="49" r="1.5" fill="#fff" opacity="0.7"/>
+        <ellipse cx="60" cy="68" rx="25" ry="17" fill="#e6c85c"/>
+        <path d="M52 58 Q60 54 68 58 Q64 65 60 65 Q56 65 52 58 Z" fill="#111"/>
+        <rect x="38" y="78" width="44" height="14" rx="4" fill="#080808"/>
+        <rect x="44" y="86" width="6" height="5" fill="#ccc"/><rect x="57" y="86" width="6" height="5" fill="#ccc"/><rect x="70" y="86" width="6" height="5" fill="#ccc"/>
+        <path d="M24 98 L96 98 L106 140 L14 140 Z" fill="url(#gg)"/>
+        <polygon points="60,100 46,93 46,107" fill="#111"/><polygon points="60,100 74,93 74,107" fill="#111"/>
+      </g>
+    </svg>`
+  });
+  console.log('%c[Part 3/7 Loaded] Paste Part 4 next!', 'color:#0f0;font-weight:bold;');
+})();
+(() => {
+  const root = document.createElement('div');
+  root.id = 'fnaf-root';
+  root.innerHTML = `
+    <canvas id="fnaf-static"></canvas><div class="fnaf-scan"></div>
+    <button class="fnaf-exit" id="fnaf-close">[ESC / EXIT]</button>
+    <div id="fnaf-menu">
+      <div><h1 class="fnaf-title">Five<br>Nights<br>at<br>Freddy's</h1><div id="fnaf-stars" style="font-size:26px;color:#dd4;margin-top:10px;letter-spacing:6px;"></div></div>
+      <div class="fnaf-nav" id="fnaf-nav">
+        <div class="fnaf-opt active" data-act="new"><span class="fnaf-arrow">&gt;&gt;</span> New Game</div>
+        <div class="fnaf-opt" data-act="cont"><span class="fnaf-arrow">&gt;&gt;</span> Continue (<span id="m-night">Night 1</span>)</div>
+        <div class="fnaf-opt locked" id="opt-n6" data-act="n6"><span class="fnaf-arrow">&gt;&gt;</span> 6th Night</div>
+        <div class="fnaf-opt locked" id="opt-cn" data-act="cn"><span class="fnaf-arrow">&gt;&gt;</span> Custom Night</div>
+      </div>
+      <div style="color:#777;font-size:13px;">Controls: [A/D] Doors | [Q/E] Lights | [SPACE] Cameras</div>
+    </div>
+    <div id="fnaf-office">
+      <div class="hud-top"><div id="hud-time" style="font-size:32px;font-weight:bold;">12 AM</div><div id="hud-night" style="font-size:18px;color:#aaa;">Night 1</div></div>
+      <div class="ctrls ctrl-l"><button class="c-btn" id="b-ld">DOOR<br>[A]</button><button class="c-btn" id="b-ll">LIGHT<br>[Q]</button></div>
+      <div class="door-frame door-left"><div class="shutter" id="s-l"></div><div class="light-bg" id="l-l"></div><div class="anim-door" id="d-bonnie">${window.FNAF_MODELS.bonnie}</div></div>
+      <div class="door-frame door-right"><div class="shutter" id="s-r"></div><div class="light-bg" id="l-r"></div><div class="anim-door" id="d-chica">${window.FNAF_MODELS.chica}</div></div>
+      <div class="ctrls ctrl-r"><button class="c-btn" id="b-rd">DOOR<br>[D]</button><button class="c-btn" id="b-rl">LIGHT<br>[E]</button></div>
+      <div id="gf-office">${window.FNAF_MODELS.golden}</div>
+      <div class="desk">[ SECURITY DESK ]</div>
+      <div class="hud-bot"><div>Power: <span id="hud-pwr">100</span>%</div><div>Usage: <div class="u-bars" id="hud-use"><div class="u-bar on-1"></div><div class="u-bar"></div><div class="u-bar"></div><div class="u-bar"></div></div></div></div>
+      <div id="fnaf-cams"><div class="cam-box">
+        <div style="color:#f33;font-size:20px;font-weight:bold;">● REC — <span id="c-lbl">CAM 1A</span></div>
+        <div style="text-align:center;margin:auto;"><div id="c-desc" style="font-size:28px;color:#ccc;margin-bottom:10px;">Show Stage</div><div id="c-occ"></div></div>
+        <div class="cam-map" id="c-map"><div class="you-box">YOU</div></div>
+      </div></div>
+      <button id="cam-bar">▲ MONITOR [SPACE] ▼</button>
+    </div>
+    <div id="fnaf-end">
+      <div id="e-ico" class="jumpscare-anim" style="margin-bottom:20px;"></div>
+      <div id="e-ttl" style="font-size:48px;font-weight:bold;"></div>
+      <div id="e-sub" style="font-size:20px;color:#aaa;margin:15px 0 30px;"></div>
+      <button id="e-rst" style="padding:12px 28px;font-family:inherit;font-size:18px;background:#222;color:#fff;border:1px solid #888;cursor:pointer;">RETURN TO MENU</button>
+    </div>
+  `;
+  document.body.appendChild(root);
+  console.log('%c[Part 4/7 Loaded] Paste Part 5 next!', 'color:#0f0;font-weight:bold;');
+})();
+(() => {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  let buzzOsc = null, buzzGain = null;
+
+  const tone = (freq, type, dur, vol = 0.2, slideTo = null) => {
+    if (ctx.state === 'suspended') ctx.resume();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, ctx.currentTime);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, ctx.currentTime + dur);
+    g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + dur);
+  };
+
+  const noise = (dur, vol = 0.2) => {
+    if (ctx.state === 'suspended') ctx.resume();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = buf; g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    src.connect(g); g.connect(ctx.destination); src.start();
+  };
+
+  window.FNAF_SFX = {
+    blip: () => tone(620, 'square', 0.06, 0.08),
+    door: () => { tone(130, 'sawtooth', 0.28, 0.35, 35); noise(0.18, 0.25); },
+    cam: () => { noise(0.16, 0.22); tone(950, 'sine', 0.08, 0.1, 420); },
+    step: () => tone(75, 'triangle', 0.14, 0.25, 30),
+    bang: () => { tone(90, 'square', 0.35, 0.4, 25); noise(0.3, 0.4); },
+    laugh: () => { tone(190, 'sawtooth', 0.18, 0.22, 130); setTimeout(() => tone(170, 'sawtooth', 0.22, 0.22, 110), 190); },
+    light: (on) => {
+      if (ctx.state === 'suspended') ctx.resume();
+      if (buzzOsc) { buzzOsc.stop(); buzzOsc = null; }
+      if (on) {
+        buzzOsc = ctx.createOscillator(); buzzGain = ctx.createGain();
+        buzzOsc.type = 'sawtooth'; buzzOsc.frequency.value = 60;
+        buzzGain.gain.value = 0.05;
+        buzzOsc.connect(buzzGain); buzzGain.connect(ctx.destination);
+        buzzOsc.start();
+      }
+    },
+    powerOut: () => { window.FNAF_SFX.light(false); tone(320, 'sawtooth', 1.4, 0.25, 45); },
+    scream: () => {
+      window.FNAF_SFX.light(false); noise(1.1, 0.45);
+      tone(780, 'sawtooth', 1.0, 0.35, 290); tone(1120, 'square', 1.0, 0.25, 410);
+    },
+    win: () => {
+      window.FNAF_SFX.light(false);
+     .forEach((n, i) => setTimeout(() => tone(n, 'sine', 0.45, 0.2), i * 280));
+    },
+    stopAll: () => window.FNAF_SFX.light(false)
+  };
+  console.log('%c[Part 5/7 Loaded] Paste Part 6 next!', 'color:#0f0;font-weight:bold;');
+})();
+(() => {
+  const $ = id => document.getElementById(id);
+  const M = window.FNAF_MODELS, SFX = window.FNAF_SFX;
+
+  const NIGHT_AI = {
+    1: { f: 0, b: 3, c: 2, x: 1 },
+    2: { f: 1, b: 5, c: 4, x: 3 },
+    3: { f: 3, b: 7, c: 6, x: 5 },
+    4: { f: 6, b: 9, c: 9, x: 7 },
+    5: { f: 9, b: 12, c: 11, x: 10 },
+    6: { f: 14, b: 15, c: 15, x: 14 }
+  };
+
+  const CAMS = [
+    { id:'1A', n:'Show Stage', x:125, y:10 },
+    { id:'1B', n:'Dining Area', x:120, y:52 },
+    { id:'1C', n:'Pirate Cove', x:58, y:92 },
+    { id:'5',  n:'Backstage', x:18, y:48 },
+    { id:'7',  n:'Restrooms', x:235, y:52 },
+    { id:'6',  n:'Kitchen (Audio Only)', x:232, y:135 },
+    { id:'3',  n:'Supply Closet', x:32, y:148 },
+    { id:'2A', n:'West Hall', x:82, y:155 },
+    { id:'2B', n:'W. Hall Corner', x:82, y:195 },
+    { id:'4A', n:'East Hall', x:172, y:155 },
+    { id:'4B', n:'E. Hall Corner', x:172, y:195 }
+  ];
+
+  const loadSave = () => JSON.parse(localStorage.getItem('fnaf_dev_save') || '{"night":1,"stars":0,"n6":false,"cn":false}');
+  const writeSave = d => localStorage.setItem('fnaf_dev_save', JSON.stringify(d));
+
+  window.FNAF_CORE = {
+    NIGHT_AI, CAMS, loadSave, writeSave,
+    st: { on:false, night:1, hr:0, pwr:100, ld:false, rd:false, ll:false, rl:false, cam:false, cur:'1A', gf:false, ai:{}, pos:{} },
+
+    refreshMenu() {
+      const s = loadSave();
+      $('m-night').textContent = `Night ${Math.min(s.night, 5)}`;
+      $('fnaf-stars').textContent = '★ '.repeat(s.stars).trim();
+      $('opt-n6').classList.toggle('locked', !s.n6);
+      $('opt-cn').classList.toggle('locked', !s.cn);
+    },
+
+    buildMap() {
+      $('c-map').innerHTML = '<div class="you-box">YOU</div>';
+      CAMS.forEach(c => {
+        const b = document.createElement('button');
+        b.className = 'cam-btn' + (c.id === '1A' ? ' sel' : '');
+        b.style.left = c.x + 'px'; b.style.top = c.y + 'px';
+        b.textContent = c.id; b.dataset.cam = c.id;
+        b.onclick = () => {
+          SFX.cam(); this.st.cur = c.id;
+          if (c.id === '2B' && Math.random() < 0.14) { this.st.gf = true; SFX.laugh(); }
+          document.querySelectorAll('.cam-btn').forEach(x => x.classList.toggle('sel', x.dataset.cam === c.id));
+          this.renderCam();
+        };
+        $('c-map').appendChild(b);
+      });
+    },
+
+    renderCam() {
+      const s = this.st, c = CAMS.find(x => x.id === s.cur);
+      $('c-lbl').textContent = `CAM ${c.id} (${c.n})`; $('c-desc').textContent = c.n;
+      if (c.id === '6') {
+        const pots = s.pos.c === '6' || s.pos.f === '6';
+        $('c-occ').innerHTML = `<span>[ CAMERA DISABLED — AUDIO ONLY ]<br>${pots ? '🔊 CLANGING POTS & PANS...' : '🔇 Quiet...'}</span>`;
+        return;
+      }
+      if (c.id === '2B' && s.gf) {
+        $('c-occ').innerHTML = `${M.golden}<span style="color:#ff5">IT'S ME</span>`;
+        return;
+      }
+      let html = '';
+      if (s.pos.f === s.cur) html += M.freddy;
+      if (s.pos.b === s.cur) html += M.bonnie;
+      if (s.pos.c === s.cur) html += M.chica;
+      if (s.cur === '1C') {
+        html += s.pos.x === 0 ? '<span>[ CURTAINS CLOSED ]</span>' :
+                s.pos.x === 1 ? `${M.foxy}<span>(Peeking...)</span>` :
+                s.pos.x === 2 ? `${M.foxy}<span>(READY TO RUN!)</span>` : '<span>⚠️ IT\'S ME</span>';
+      }
+      $('c-occ').innerHTML = html || '<span>[ EMPTY ]</span>';
+    },
+
+    updateUI() {
+      const s = this.st;
+      $('s-l').classList.toggle('closed', s.ld); $('s-r').classList.toggle('closed', s.rd);
+      $('b-ld').classList.toggle('d-on', s.ld); $('b-rd').classList.toggle('d-on', s.rd);
+      $('l-l').classList.toggle('lit', s.ll); $('l-r').classList.toggle('lit', s.rl);
+      $('b-ll').classList.toggle('l-on', s.ll); $('b-rl').classList.toggle('l-on', s.rl);
+      $('d-bonnie').classList.toggle('present', s.pos.b === 'DOOR');
+      $('d-chica').classList.toggle('present', s.pos.c === 'DOOR');
+      $('gf-office').style.display = (!s.cam && s.gf) ? 'block' : 'none';
+      $('fnaf-cams').style.display = s.cam ? 'block' : 'none';
+      if (s.cam) this.renderCam();
+
+      const use = 1 + s.ld + s.rd + s.ll + s.rl + s.cam;
+      document.querySelectorAll('.u-bar').forEach((b, i) => b.className = 'u-bar' + (i < use ? ` on-${Math.min(use,5)}` : ''));
+      $('hud-pwr').textContent = Math.max(0, Math.ceil(s.pwr));
+      $('hud-time').textContent = (s.hr === 0 ? '12' : s.hr) + ' AM';
+    }
+  };
+  console.log('%c[Part 6/7 Loaded] Paste Part 7 to start!', 'color:#0f0;font-weight:bold;');
+})();
+(() => {
+  const $ = id => document.getElementById(id);
+  const M = window.FNAF_MODELS, SFX = window.FNAF_SFX, C = window.FNAF_CORE;
+  const canvas = $('fnaf-static'), ctx = canvas.getContext('2d');
+  let staticAnim, gTimer, aiTimer, gfTimer;
+
+  const resize = () => { canvas.width = innerWidth / 4; canvas.height = innerHeight / 4; };
+  resize(); addEventListener('resize', resize);
+  const drawStatic = () => {
+    const img = ctx.createImageData(canvas.width, canvas.height), buf = new Uint32Array(img.data.buffer);
+    for (let i = 0; i < buf.length; i++) { const v = Math.random() * 255; buf[i] = (255<<24)|(v<<16)|(v<<8)|v; }
+    ctx.putImageData(img, 0, 0); staticAnim = requestAnimationFrame(drawStatic);
+  };
+  drawStatic();
+  C.buildMap(); C.refreshMenu();
+
+  function endGame(win, msg, modelHtml, cn20 = false) {
+    C.st.on = false; clearInterval(gTimer); clearInterval(aiTimer); clearTimeout(gfTimer);
+    win ? SFX.win() : SFX.scream();
+    if (win) {
+      const sv = C.loadSave();
+      if (C.st.night < 5) sv.night = Math.max(sv.night, C.st.night + 1);
+      else if (C.st.night === 5) { sv.stars = Math.max(sv.stars, 1); sv.n6 = true; }
+      else if (C.st.night === 6) { sv.stars = Math.max(sv.stars, 2); sv.cn = true; }
+      else if (C.st.night === 7 && cn20) { sv.stars = 3; }
+      C.writeSave(sv); C.refreshMenu();
+    }
+    $('fnaf-office').style.display = 'none'; $('fnaf-end').style.display = 'flex';
+    $('e-ico').className = win ? '' : 'jumpscare-anim';
+    $('e-ico').innerHTML = modelHtml;
+    $('e-ttl').textContent = win ? '6:00 AM' : 'GAME OVER';
+    $('e-ttl').style.color = win ? '#6f6' : '#f33'; $('e-sub').textContent = msg;
+  }
+
+  function startNight(n, ai) {
+    SFX.blip();
+    C.st = { on:true, night:n, hr:0, pwr:100, ld:false, rd:false, ll:false, rl:false, cam:false, cur:'1A', gf:false, ai, pos:{f:'1A',b:'1A',c:'1A',x:0} };
+    $('hud-night').textContent = n === 7 ? 'Custom Night' : `Night ${n}`;
+    $('fnaf-menu').style.display = 'none'; $('fnaf-end').style.display = 'none'; $('fnaf-office').style.display = 'block';
+    C.updateUI();
+
+    const is420 = ai.f >= 20 && ai.b >= 20 && ai.c >= 20 && ai.x >= 20;
+    let ticks = 0;
+    gTimer = setInterval(() => {
+      if (!C.st.on) return;
+      if (++ticks % 15 === 0 && ++C.st.hr >= 6) return endGame(true, `You survived ${n === 7 ? 'Custom Night' : 'Night ' + n}!`, '<div style="font-size:80px">🎉</div>', is420);
+      C.st.pwr -= (1 + C.st.ld + C.st.rd + C.st.ll + C.st.rl + C.st.cam) * 0.26;
+      if (C.st.pwr <= 0) {
+        C.st.pwr = 0; C.st.ld = C.st.rd = C.st.ll = C.st.rl = C.st.cam = C.st.gf = false;
+        SFX.powerOut(); C.updateUI();
+        setTimeout(() => C.st.on && endGame(false, 'Power ran out... Freddy got you.', M.freddy), 3000);
+      }
+      C.updateUI();
+    }, 1000);
+
+    aiTimer = setInterval(() => {
+      const s = C.st; if (!s.on || s.pwr <= 0) return;
+      let moved = false;
+      if (Math.random() * 20 < s.ai.b) {
+        const p = ['1A','1B','5','2A','3','2B','DOOR'];
+        if (s.pos.b === 'DOOR') { if (!s.ld) return endGame(false, 'Bonnie got into the office!', M.bonnie); s.pos.b = '1B'; }
+        else s.pos.b = p[p.indexOf(s.pos.b) + 1];
+        moved = true;
+      }
+      if (Math.random() * 20 < s.ai.c) {
+        const p = ['1A','1B','7','6','4A','4B','DOOR'];
+        if (s.pos.c === 'DOOR') { if (!s.rd) return endGame(false, 'Chica got into the office!', M.chica); s.pos.c = '1B'; }
+        else s.pos.c = p[p.indexOf(s.pos.c) + 1];
+        moved = true;
+      }
+      if (!s.cam && Math.random() * 20 < s.ai.f) {
+        const p = ['1A','1B','7','6','4A','4B','ATK'], nx = p[p.indexOf(s.pos.f) + 1];
+        if (nx === 'ATK') { if (!s.rd) return endGame(false, 'Freddy snuck in!', M.freddy); s.pos.f = '4A'; }
+        else { s.pos.f = nx; SFX.laugh(); }
+        moved = true;
+      }
+      if (!s.cam && Math.random() * 20 < s.ai.x && ++s.pos.x >= 3) {
+        if (!s.ld) return endGame(false, 'Foxy sprinted down the West Hall!', M.foxy);
+        SFX.bang(); s.pwr = Math.max(0, s.pwr - 5); s.pos.x = 0;
+      }
+      if (moved) SFX.step();
+      C.updateUI();
+    }, 4200);
+  }
+
+  const tog = k => {
+    const s = C.st; if (s.pwr <= 0) return;
+    s[k] = !s[k];
+    if (k === 'ld' || k === 'rd') SFX.door();
+    if (k === 'll') { if (s.ll) s.rl = false; SFX.light(s.ll); }
+    if (k === 'rl') { if (s.rl) s.ll = false; SFX.light(s.rl); }
+    if (k === 'cam') {
+      s.ll = s.rl = false; SFX.light(false); SFX.cam();
+      clearTimeout(gfTimer);
+      if (!s.cam && s.gf) gfTimer = setTimeout(() => s.on && s.gf && !s.cam && endGame(false, 'IT\'S ME', M.golden), 2800);
+      if (s.cam && s.gf) s.gf = false;
+    }
+    C.updateUI();
+  };
+
+  $('b-ld').onclick = () => tog('ld'); $('b-rd').onclick = () => tog('rd');
+  $('b-ll').onclick = () => tog('ll'); $('b-rl').onclick = () => tog('rl');
+  $('cam-bar').onclick = () => tog('cam');
+
+  const opts = Array.from(document.querySelectorAll('.fnaf-opt'));
+  opts.forEach((o, i) => {
+    o.onmouseenter = () => { if (!o.classList.contains('locked')) { SFX.blip(); opts.forEach((x, j) => x.classList.toggle('active', i === j)); } };
+    o.onclick = () => {
+      if (o.classList.contains('locked')) return;
+      const act = o.dataset.act, sv = C.loadSave();
+      if (act === 'new') { sv.night = 1; C.writeSave(sv); C.refreshMenu(); startNight(1, C.NIGHT_AI[1]); }
+      if (act === 'cont') { const n = Math.min(sv.night, 5); startNight(n, C.NIGHT_AI[n]); }
+      if (act === 'n6') startNight(6, C.NIGHT_AI[6]);
+      if (act === 'cn') startNight(7, {
+        f: +(prompt('Freddy (0-20):','20')||0), b: +(prompt('Bonnie (0-20):','20')||0),
+        c: +(prompt('Chica (0-20):','20')||0), x: +(prompt('Foxy (0-20):','20')||0)
+      });
+    };
+  });
+
+  $('e-rst').onclick = () => { SFX.blip(); $('fnaf-end').style.display = 'none'; $('fnaf-menu').style.display = 'flex'; };
+
+  const cleanup = () => {
+    C.st.on = false; SFX.stopAll(); clearInterval(gTimer); clearInterval(aiTimer); clearTimeout(gfTimer); cancelAnimationFrame(staticAnim);
+    removeEventListener('keydown', onKey); removeEventListener('resize', resize);
+    $('fnaf-root')?.remove(); $('fnaf-style')?.remove();
+  };
+  const onKey = e => {
+    if (e.key === 'Escape') return cleanup();
+    if (!C.st.on) return;
+    const k = e.key.toLowerCase();
+    if (k === 'a') tog('ld'); if (k === 'd') tog('rd');
+    if (k === 'q') tog('ll'); if (k === 'e') tog('rl');
+    if (e.code === 'Space') { e.preventDefault(); tog('cam'); }
+  };
+  addEventListener('keydown', onKey);
+  $('fnaf-close').onclick = cleanup;
+  console.log('%c[Part 7/7 Loaded] Full 11-camera FNaF 1 edition ready!', 'color:#0f0;font-weight:bold;');
+})();
+
